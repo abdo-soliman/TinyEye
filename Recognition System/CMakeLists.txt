@@ -6,9 +6,9 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 
-option(USE_PYTORCH "Build with Pytorch" OFF)
-option(USE_TENSORFLOW "Build with tensorflow" ON)
-set(LIB_TORCH_PATH "/path/to/libtorch" CACHE PATH "Path to libtorch folder that conatain the C library of Pytorch and its headers")
+option(USE_PYTORCH "Build with Pytorch" ON)
+option(USE_TENSORFLOW "Build with tensorflow" OFF)
+set(LIB_TORCH_PATH "~/libtorch" CACHE PATH "Path to libtorch folder that conatain the C library of Pytorch and its headers")
 set(LIB_TENSORFLOW_PATH "/path/to/tensorflow/lite" CACHE PATH "Path to tensorflow-lite folder that conatain the C library and its headers")
 
 if (USE_PYTORCH)
@@ -98,7 +98,7 @@ elseif (MSVC)
 	set(CMAKE_CXX_FLAGS_RELEASE "/Ot")
 endif()
 
-set(CMAKE_CXX_FLAGS "${COMPILER_WARNINGS} ${CMAKE_CXX_FLAGS} -pthread")
+set(CMAKE_CXX_FLAGS "${COMPILER_WARNINGS} ${CMAKE_CXX_FLAGS} -pthread -lstdc++fs")
 
 add_subdirectory(${CMAKE_SOURCE_DIR}/src)
 

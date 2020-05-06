@@ -8,7 +8,7 @@ To build this project you need CMake and OpenCV (minimum version 3.2) as main de
 To install cmake you can run of the following command:
 ```bash
 # for Debian based operating systems
-sudo apt-get install cmake
+sudo apt-get install -y cmake
 # for rpm based operating systems
 sudo yum install cmake
 ```
@@ -18,16 +18,16 @@ For windows, you can install it from the following link: https://cmake.org/downl
 The easiest way to install the OpenCV C library is to install the precompiled development library in your operating system repositories. First, you will need to install the following dependencies:
 ```bash
 # if you are using rpm Linux just replace apt or apt-get with yum
-sudo apt install libgtk-3-dev libcanberra-gtk3-dev
-sudo apt install libtiff-dev zlib1g-dev
-sudo apt install libjpeg-dev libpng-dev
-sudo apt install libavcodec-dev libavformat-dev libswscale-dev libv4l-dev
-sudo apt-get install libxvidcore-dev libx264-dev
+sudo apt install -y libgtk-3-dev libcanberra-gtk3-dev
+sudo apt install -y libtiff-dev zlib1g-dev
+sudo apt install -y libjpeg-dev libpng-dev
+sudo apt install -y libavcodec-dev libavformat-dev libswscale-dev libv4l-dev
+sudo apt-get install -y libxvidcore-dev libx264-dev
 ```
 After the installation is done you can install the development package of OpenCV using the following command:
 ```bash
 # if you are using rpm Linux just replace apt or apt-get with yum
-sudo apt-get install libopencv libopencv-dev
+sudo apt-get install -y libopencv libopencv-dev
 ```
 This will install the C library and its header files.
 
