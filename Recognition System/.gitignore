@@ -4,3 +4,6 @@ docs/
 models/
 photos/
 data/
+src/*.out
+src/test.*
+src/*.in
