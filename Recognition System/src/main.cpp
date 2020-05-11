@@ -1,6 +1,7 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include "argparser/argparser.h"
+#include "mtcnn/mtcnn.h"
 
 int main (int argc, char** argv)
 {
@@ -14,17 +15,28 @@ int main (int argc, char** argv)
 	std::string filename = "";
     std::string mtcnn_model = "";
     std::string tf_model = "";
-    std::string model_dir = "";
+    std::string models_dir = "";
 
-    parser.get_option("--models-dir", model_dir);
+    parser.get_option("--models-dir", models_dir);
     parser.get_option("--mtcnn-model", mtcnn_model);
     parser.get_option("--facenet-model", tf_model);
     parser.get_option("--input", filename);
 
-	cv::Mat frame = cv::imread(filename);
-    cv::imshow("Input Image", frame);
-    cv::waitKey(0);
-    frame.release();
+    mtcnn_model = models_dir + '/' + mtcnn_model;
+
+    try
+    {
+        cv::Mat img = cv::imread(filename);
+        mtcnn::MTCNN detector(mtcnn_model);
+        detector.detect_draw(img);
+        cv::imshow("result", img);
+        cv::waitKey(0);
+        img.release();
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+    }
 
     return 0;
 }
