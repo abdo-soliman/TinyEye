@@ -7,7 +7,7 @@ random.shuffle(images_paths)
 
 labels = []
 for image_path in images_paths:
-    labels.append(image_path.split("/")[-1][:-9])
+    labels.append(image_path.split("/")[-2])
 
 data_len = len(images_paths)
 train_len = int(0.9*data_len)

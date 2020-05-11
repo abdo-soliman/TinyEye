@@ -7,3 +7,4 @@ data/
 src/*.out
 src/test.*
 src/*.in
+models/*
