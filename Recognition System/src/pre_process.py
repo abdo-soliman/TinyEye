@@ -19,11 +19,11 @@ start = datetime.datetime.now()
 for image_path in images_paths:
     images_count += 1
     output_image_path = image_path.replace("VGG", "faces", 1)
-    print("[",int(images_count/images_len),"%]", images_count , "/", images_len, "Reading image", image_path)
+    #print("[",int((images_count/images_len)*100),"%]", images_count , "/", images_len, "Reading image", image_path)
     image = cv2.imread(os.path.join(os.getcwd(), image_path))
-    print("[",int(images_count/images_len),"%]", images_count , "/", images_len, "detecting faces...")
+    print("[",int((images_count/images_len)*100),"%]", images_count , "/", images_len, "detecting faces...")
     faces = detector.detect_faces(image)
-    print("[",int(images_count/images_len),"%]", images_count , "/", images_len, "detected {} faces...".format(len(faces)))
+    print("[",int((images_count/images_len)*100),"%]", images_count , "/", images_len, "detected {} faces...".format(len(faces)))
     for i in range(len(faces)):
         # get coordinates
         if i > 0:
@@ -39,7 +39,7 @@ for image_path in images_paths:
         if y2 < 0:
             y2 = 0
         # save face
-        print("[",int(images_count/images_len),"%]", images_count , "/", images_len, "Writing image output", output_image_path)
+        print("[",int((images_count/images_len)*100),"%]", images_count , "/", images_len, "Writing image output", output_image_path)
         dirs_list = output_image_path.split("/")[:-1]
         out_dir = "/".join(dirs_list)
         if not(os.path.isdir(out_dir)):
