@@ -131,3 +131,8 @@ We are trying to build the following Face Recognition Pipeline in C++:
 ![alt text](../Server/Model%20Builder/docs/face_recognition_pipeline.png "Face Recognition Pipeline")
 
 You can see a full explanation of the pipeline different phases [here](../Server/Model%20Builder/README.md#Training)
+
+```bash
+find . -maxdepth 1 -type d -exec bash -c "echo -ne '{} '; ls '{}' | wc -l" \; | 
+ awk '$NF<=10' | xargs rm -r
+```
