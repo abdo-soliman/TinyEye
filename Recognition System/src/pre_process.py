@@ -8,6 +8,10 @@ import sys
 print(sys.argv[1])
 data_path = sys.argv[1]
 
+data_dir = data_path.split("/")[-1]
+if not(data_dir):
+    data_dir = data_path.split("/")[-2]
+
 images_paths = list(paths.list_images(data_path))
 images_len = len(images_paths)
 detector = MTCNN()
@@ -18,7 +22,7 @@ images_count = 0
 start = datetime.datetime.now()
 for image_path in images_paths:
     images_count += 1
-    output_image_path = image_path.replace("VGG", "faces", 1)
+    output_image_path = image_path.replace(data_dir, "faces", 1)
     #print("[",int((images_count/images_len)*100),"%]", images_count , "/", images_len, "Reading image", image_path)
     image = cv2.imread(os.path.join(os.getcwd(), image_path))
     print("[",int((images_count/images_len)*100),"%]", images_count , "/", images_len, "detecting faces...")

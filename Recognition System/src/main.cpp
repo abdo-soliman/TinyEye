@@ -12,6 +12,7 @@
 #include "mobilefacenet/mobilefacenet.h"
 #include "mobilefacenet/classifier/InnerProduct.h"
 #include "mobilefacenet/classifier/ArcMarginProduct.h"
+#include "mobilefacenet/classifier/CosineMarginProduct.h"
 #include "argparser/cxxopts.hpp"
 
 int main(int argc, char **argv)
@@ -28,14 +29,7 @@ int main(int argc, char **argv)
 
     cxxopts::Options options("test", "A brief description");
 
-    options.add_options()
-            ("iterations", "number of iterations or EPOCHs", cxxopts::value<int>()->default_value("16"))
-            ("optimizer", "model optimizer (Adam, SGD)", cxxopts::value<std::string>()->default_value("Adam"))
-            ("train-batch", "train batch size", cxxopts::value<int>()->default_value("8"))
-            ("test-batch", "test batch size", cxxopts::value<int>()->default_value("200"))
-            ("classifier", "classifier (InnerProduct, ArcMarginProduct)", cxxopts::value<std::string>()->default_value("InnerProduct"))
-            ("easy_margin", "easy margin for ArcMarginProduct", cxxopts::value<bool>()->default_value("false"))
-            ("h,help", "Print usage");
+    options.add_options()("iterations", "number of iterations or EPOCHs", cxxopts::value<int>()->default_value("16"))("optimizer", "model optimizer (Adam, SGD)", cxxopts::value<std::string>()->default_value("Adam"))("train-batch", "train batch size", cxxopts::value<int>()->default_value("8"))("test-batch", "test batch size", cxxopts::value<int>()->default_value("200"))("classifier", "classifier (InnerProduct, ArcMarginProduct, CosineMarginProduct)", cxxopts::value<std::string>()->default_value("InnerProduct"))("easy_margin", "easy margin for ArcMarginProduct", cxxopts::value<bool>()->default_value("false"))("h,help", "Print usage");
 
     auto result = options.parse(argc, argv);
 
@@ -65,9 +59,16 @@ int main(int argc, char **argv)
     config.train_batch_size = train_batch_size;
     config.test_batch_size = test_batch_size;
 
-    std::vector<std::string> faces_count = get_file_data("../data/faces_count.txt");
+    // save training parameters
+    std::string file_name = std::string("../models/training-parameters-") + std::to_string(now) + ".txt";
+    std::string training_data = std::string(optimizer) + " ," + std::string(classifier) + " ,train batch size " + std::to_string(train_batch_size) + " ,test batch size " + std::to_string(test_batch_size) + " ,iterations " + std::to_string(iterations) + " ,easy margin " + std::to_string(easy_margin);
+    write_in_file(file_name, training_data);
+
+    std::vector<std::string>
+        faces_count = get_file_data("../data/faces_count.txt");
 
     torch::manual_seed(1);
+    
     auto data = read_info(config.infoFilePath);
 
     auto train_set =
@@ -88,6 +89,7 @@ int main(int argc, char **argv)
 
     InnerProduct inner_margin = InnerProduct(config.features, std::stoi(faces_count[0]));
     ArcMarginProduct arc_margin = ArcMarginProduct(config.features, std::stoi(faces_count[0]), easy_margin);
+    CosineMarginProduct cos_margin = CosineMarginProduct(config.features, std::stoi(faces_count[0]));
 
     std::cout << faces_count[0] << "\n";
 
@@ -102,7 +104,7 @@ int main(int argc, char **argv)
     if (optimizer == "Adam")
     {
         generator_optimizer = new torch::optim::Adam(
-            network->parameters(), torch::optim::AdamOptions(2e-4).beta1(0.5));
+            network->parameters(), torch::optim::AdamOptions(2e-4));
     }
     else if (optimizer == "SGD")
     {
@@ -112,7 +114,7 @@ int main(int argc, char **argv)
     else
     {
         generator_optimizer = new torch::optim::Adam(
-            network->parameters(), torch::optim::AdamOptions(2e-4).beta1(0.5));
+            network->parameters(), torch::optim::AdamOptions(2e-4));
     }
 
     // torch::optim::Adam discriminator_optimizer(
@@ -126,8 +128,11 @@ int main(int argc, char **argv)
     }
     else if (classifier == "ArcMarginProduct")
     {
-
         generator_optimizer->add_parameters(arc_margin->parameters());
+    }
+    else if (classifier == "CosineMarginProduct")
+    {
+        generator_optimizer->add_parameters(cos_margin->parameters());
     }
     else
     {
@@ -138,9 +143,9 @@ int main(int argc, char **argv)
 
     for (size_t i = 0; i < config.iterations; ++i)
     {
-        train(network, *train_loader, *generator_optimizer, i + 1, train_size, classifier, inner_margin, arc_margin);
+        train(network, *train_loader, *generator_optimizer, i + 1, train_size, classifier, inner_margin, arc_margin, cos_margin);
         std::cout << std::endl;
-        test(network, *test_loader, test_size, classifier, inner_margin, arc_margin);
+        test(network, *test_loader, test_size, classifier, inner_margin, arc_margin, cos_margin);
         std::cout << std::endl;
     }
 
@@ -151,8 +156,11 @@ int main(int argc, char **argv)
     }
     else if (classifier == "ArcMarginProduct")
     {
-
         torch::save(arc_margin, torch::str("../models/arc_margin-", now, ".pt"));
+    }
+    else if (classifier == "CosineMarginProduct")
+    {
+        torch::save(cos_margin, torch::str("../models/cos_margin-", now, ".pt"));
     }
     else
     {

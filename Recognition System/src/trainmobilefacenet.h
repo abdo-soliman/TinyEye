@@ -4,6 +4,7 @@
 #include "mobilefacenet/mobilefacenet.h"
 #include "mobilefacenet/classifier/InnerProduct.h"
 #include "mobilefacenet/classifier/ArcMarginProduct.h"
+#include "mobilefacenet/classifier/CosineMarginProduct.h"
 #include "dataloader.h"
 #include "config.h"
 #include "utils.h"
@@ -23,7 +24,8 @@ void train(
     size_t data_size,
     std::string classifier,
     InnerProduct &inner_margin,
-    ArcMarginProduct &arc_margin)
+    ArcMarginProduct &arc_margin,
+    CosineMarginProduct &cos_margin)
 {
     size_t index = 0;
     network->train();
@@ -51,8 +53,11 @@ void train(
         }
         else if (classifier == "ArcMarginProduct")
         {
-
             margin_out = arc_margin->forward(output, targets);
+        }
+        else if (classifier == "CosineMarginProduct")
+        {
+            margin_out = cos_margin->forward(output, targets);
         }
         else
         {

@@ -13,6 +13,7 @@
 */
 std::vector<std::string> get_file_data(std::string input_file_name);
 void write_in_csv(std::string input_file_name, float loss, float acc, int Epoch);
+void write_in_file(std::string input_file_name, std::string data);
 void to_lower(std::string &str);
 bool is_bool(std::string &s);
 bool is_uint(const std::string &s);
@@ -27,6 +28,15 @@ void write_in_csv(std::string input_file_name, float loss, float acc, int Epoch 
 
     outfile.open(input_file_name.c_str(), std::ios::app); // append instead of overwrite
     outfile << Epoch << "," << loss << "," << acc << "\n";
+    outfile.close();
+}
+
+void write_in_file(std::string input_file_name, std::string data)
+{
+    std::ofstream outfile;
+
+    outfile.open(input_file_name.c_str());
+    outfile << data << "\n";
     outfile.close();
 }
 

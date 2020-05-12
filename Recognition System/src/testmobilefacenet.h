@@ -8,13 +8,14 @@
 #include <torch/torch.h>
 #include "mobilefacenet/classifier/InnerProduct.h"
 #include "mobilefacenet/classifier/ArcMarginProduct.h"
+#include "mobilefacenet/classifier/CosineMarginProduct.h"
 #include <ctime>
 
 std::time_t test_time_now = std::time(0);
 char *test_dt = std::ctime(&test_time_now);
 
 template <typename DataLoader>
-void test(mobilefacenet &network, DataLoader &loader, size_t data_size, std::string classifier, InnerProduct &inner_margin, ArcMarginProduct &arc_margin)
+void test(mobilefacenet &network, DataLoader &loader, size_t data_size, std::string classifier, InnerProduct &inner_margin, ArcMarginProduct &arc_margin, CosineMarginProduct &cos_margin)
 {
     size_t index = 0;
     network->eval();
@@ -36,8 +37,11 @@ void test(mobilefacenet &network, DataLoader &loader, size_t data_size, std::str
         }
         else if (classifier == "ArcMarginProduct")
         {
-
             margin_out = arc_margin->forward(output, targets);
+        }
+        else if (classifier == "CosineMarginProduct")
+        {
+            margin_out = cos_margin->forward(output, targets);
         }
         else
         {
