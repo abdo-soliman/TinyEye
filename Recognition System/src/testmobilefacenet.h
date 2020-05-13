@@ -25,8 +25,8 @@ void test(mobilefacenet &network, DataLoader &loader, size_t data_size, std::str
 
     for (const auto &batch : loader)
     {
-        auto data = batch.data;
-        auto targets = batch.target.view({-1});
+        auto data = batch.data.to(config.device);
+        auto targets = batch.target.to(config.device).view({-1});
 
         auto output = network->forward(data);
         torch::Tensor margin_out;

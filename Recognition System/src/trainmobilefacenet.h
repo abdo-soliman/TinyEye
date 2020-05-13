@@ -34,14 +34,15 @@ void train(
 
     for (auto &batch : loader)
     {
-        auto data = batch.data;
+
+        auto data = batch.data.to(config.device);
+        auto targets = batch.target.to(config.device).view({-1});
         // std::cout << data << std::endl;
-        auto targets = batch.target.view({-1});
-        // std::cout << targets << std::endl;
         optimizer.zero_grad();
         // discriminator_optimizer.zero_grad();
 
         auto output = network->forward(data);
+        // std::cout << targets << std::endl;
         // std::cout << typeid(targets).name() << '\n';
 
         // auto margin_out = inner_margin->forward(output, targets);
@@ -64,10 +65,12 @@ void train(
             margin_out = inner_margin->forward(output, targets);
         }
 
-        // std::cout << targets << std::endl;
+        // std::cout << "after margin forward" << std::endl;
+        // // std::cout << targets << std::endl;
         // std::cout << margin_out << std::endl;
 
         auto loss = criterion(margin_out, targets);
+        // std::cout << "after loss" << std::endl;
         // auto loss = torch::nll_loss(torch::log_softmax(margin_out, /*dim=*/1), targets); //torch::nll_loss(margin_out, targets);
         assert(!std::isnan(loss.template item<float>()));
         auto acc = margin_out.argmax(1).eq(targets).sum();

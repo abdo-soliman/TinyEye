@@ -3,6 +3,7 @@
 
 #include <torch/torch.h>
 #include <vector>
+#include "../config.h"
 
 struct BottleNeckImpl : torch::nn::Module
 {
@@ -23,6 +24,7 @@ struct BottleNeckImpl : torch::nn::Module
               torch::nn::BatchNorm2d(torch::nn::BatchNorm2dOptions(output)))
     {
         connect = stride == 1 and input == output;
+        conv->to(config.device);
         // register_module("conv", conv);
     }
 
@@ -30,11 +32,12 @@ struct BottleNeckImpl : torch::nn::Module
     {
         if (connect)
         {
-            return x + conv->forward(x);
+            x = x + conv->forward(x);
+            return x;
         }
-        return conv->forward(x);
+        x = conv->forward(x);
+        return x;
     }
-
     // BottleNeckConv conv;
 };
 

@@ -68,9 +68,15 @@ int main(int argc, char **argv)
         faces_count = get_file_data("../data/faces_count.txt");
 
     torch::manual_seed(1);
-    
+
+    if (torch::cuda::is_available())
+        config.device = torch::kCUDA;
+    std::cout << "Running on: "
+              << (config.device == torch::kCUDA ? "CUDA" : "CPU") << std::endl;
+
     auto data = read_info(config.infoFilePath);
 
+    // std::cout << "Loading data ...\n";
     auto train_set =
         CustomDataset(data.first).map(torch::data::transforms::Stack<>());
     auto train_size = train_set.size().value();
@@ -85,11 +91,17 @@ int main(int argc, char **argv)
         torch::data::make_data_loader<torch::data::samplers::SequentialSampler>(
             std::move(test_set), config.test_batch_size);
 
+    // std::cout << "constructing network ...\n";
     mobilefacenet network(config.features);
+    network->to(config.device);
+    // std::cout << "constructed network ...\n";
 
     InnerProduct inner_margin = InnerProduct(config.features, std::stoi(faces_count[0]));
     ArcMarginProduct arc_margin = ArcMarginProduct(config.features, std::stoi(faces_count[0]), easy_margin);
     CosineMarginProduct cos_margin = CosineMarginProduct(config.features, std::stoi(faces_count[0]));
+    inner_margin->to(config.device);
+    arc_margin->to(config.device);
+    cos_margin->to(config.device);
 
     std::cout << faces_count[0] << "\n";
 

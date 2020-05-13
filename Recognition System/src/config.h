@@ -2,6 +2,7 @@
 #define CONFIG_H_H_
 
 #include <iostream>
+#include <torch/torch.h>
 
 struct Config
 {
@@ -13,6 +14,7 @@ struct Config
     size_t log_interval = 20;
     // path must end in delimiter
     std::string infoFilePath = "../data/images.txt";
+    torch::DeviceType device = torch::kCPU;
 };
 
 static Config config;
