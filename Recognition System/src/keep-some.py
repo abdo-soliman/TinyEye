@@ -16,6 +16,8 @@ for folder in listdir(mypath):
     for file_name in listdir(folder):
         file_name = join(folder, file_name)
         count += 1
-        if count > files_count:
+        if count > 0 and count < files_count+1:
+            remove(file_name)
+        elif count > (2*files_count)+1:
             remove(file_name)
 

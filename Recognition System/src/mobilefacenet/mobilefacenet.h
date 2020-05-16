@@ -54,8 +54,17 @@ struct mobilefacenetImpl : torch::nn::Module
             {2, 128, 6, 1},
             {4, 128, 1, 2},
             {2, 128, 2, 1}};
+        // int MobileFaceNet_BottleNeck_Setting[7][4] = {
+        //     // t, c, n, s
+        //     {1, 16, 1, 1},
+        //     {6, 24, 2, 2},
+        //     {6, 32, 3, 2},
+        //     {6, 64, 4, 2},
+        //     {6, 96, 3, 1},
+        //     {6, 160, 3, 2},
+        //     {6, 128, 1, 1}};
         torch::nn::Sequential layers;
-        for (size_t i = 0; i < 4; i++)
+        for (size_t i = 0; i < 5; i++)
         {
             int t = MobileFaceNet_BottleNeck_Setting[i][0];
             int c = MobileFaceNet_BottleNeck_Setting[i][1];

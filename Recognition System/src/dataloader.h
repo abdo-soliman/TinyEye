@@ -57,7 +57,7 @@ public:
         int image_size = config.image_size;
         std::string path = data[index].first;
         auto mat = cv::imread(path);
-        // mat.convertTo(mat, CV_32F, 1.0 / 255, 0);
+        mat.convertTo(mat, CV_32F, 1.0 / 255, 0);
         assert(!mat.empty());
 
         cv::resize(mat, mat, cv::Size(image_size, image_size));

@@ -29,7 +29,7 @@ int main(int argc, char **argv)
 
     cxxopts::Options options("test", "A brief description");
 
-    options.add_options()("iterations", "number of iterations or EPOCHs", cxxopts::value<int>()->default_value("16"))("optimizer", "model optimizer (Adam, SGD)", cxxopts::value<std::string>()->default_value("Adam"))("train-batch", "train batch size", cxxopts::value<int>()->default_value("8"))("test-batch", "test batch size", cxxopts::value<int>()->default_value("200"))("classifier", "classifier (InnerProduct, ArcMarginProduct, CosineMarginProduct)", cxxopts::value<std::string>()->default_value("InnerProduct"))("easy_margin", "easy margin for ArcMarginProduct", cxxopts::value<bool>()->default_value("false"))("h,help", "Print usage");
+    options.add_options()("iterations", "number of iterations or EPOCHs", cxxopts::value<int>()->default_value("16"))("optimizer", "model optimizer (Adam, SGD)", cxxopts::value<std::string>()->default_value("Adam"))("train-batch", "train batch size", cxxopts::value<int>()->default_value("8"))("test-batch", "test batch size", cxxopts::value<int>()->default_value("200"))("classifier", "classifier (InnerProduct, ArcMarginProduct, CosineMarginProduct)", cxxopts::value<std::string>()->default_value("InnerProduct"))("easy_margin", "easy margin for ArcMarginProduct", cxxopts::value<bool>()->default_value("false"))("resume", "resume training from last check point", cxxopts::value<bool>()->default_value("false"))("optimizer-check", "last checkpoint for optimizer", cxxopts::value<std::string>()->default_value(""))("model-check", "last checkpoint for model", cxxopts::value<std::string>()->default_value(""))("innermargin-check", "last checkpoint for innermargin", cxxopts::value<std::string>()->default_value(""))("arcmargin-check", "last checkpoint for arcmargin", cxxopts::value<std::string>()->default_value(""))("cosmargin-check", "last checkpoint for cosmargin", cxxopts::value<std::string>()->default_value(""))("h,help", "Print usage");
 
     auto result = options.parse(argc, argv);
 
@@ -45,6 +45,12 @@ int main(int argc, char **argv)
     size_t test_batch_size = result["test-batch"].as<int>();
     size_t iterations = result["iterations"].as<int>();
     bool easy_margin = result["easy_margin"].as<bool>();
+    bool resume = result["resume"].as<bool>();
+    std::string optimizer_check = result["optimizer-check"].as<std::string>();
+    std::string model_check = result["model-check"].as<std::string>();
+    std::string innermargin_check = result["innermargin-check"].as<std::string>();
+    std::string arcmargin_check = result["arcmargin-check"].as<std::string>();
+    std::string cosmargin_check = result["cosmargin-check"].as<std::string>();
 
     std::time_t now = std::time(0);
 
@@ -67,10 +73,10 @@ int main(int argc, char **argv)
     std::vector<std::string>
         faces_count = get_file_data("../data/faces_count.txt");
 
-    torch::manual_seed(1);
+    torch::manual_seed(now);
 
-    if (torch::cuda::is_available())
-        config.device = torch::kCUDA;
+    // if (torch::cuda::is_available())
+    //     config.device = torch::kCUDA;
     std::cout << "Running on: "
               << (config.device == torch::kCUDA ? "CUDA" : "CPU") << std::endl;
 
@@ -150,6 +156,37 @@ int main(int argc, char **argv)
     {
         generator_optimizer->add_parameters(inner_margin->parameters());
     }
+
+    if (resume)
+    {
+        std::cout << "resuming..." << std::endl;
+        torch::load(network, model_check);
+        if (classifier == "InnerProduct")
+        {
+            torch::load(inner_margin, innermargin_check);
+        }
+        else if (classifier == "ArcMarginProduct")
+        {
+            torch::load(arc_margin, arcmargin_check);
+        }
+        else if (classifier == "CosineMarginProduct")
+        {
+            torch::load(cos_margin, cosmargin_check);
+        }
+        else
+        {
+            torch::load(inner_margin, innermargin_check);
+        }
+
+        torch::load(*generator_optimizer, optimizer_check);
+    }
+
+    std::cout << config.test_batch_size << std::endl;
+    std::cout << resume << std::endl;
+    std::cout << classifier << std::endl;
+    std::cout << optimizer << std::endl;
+    std::cout << easy_margin << std::endl;
+
     // torch::optim::SGD discriminator_optimizer(
     //     margin->parameters(), torch::optim::SGDOptions(5e-4).momentum(0.5));
 
@@ -159,33 +196,27 @@ int main(int argc, char **argv)
         std::cout << std::endl;
         test(network, *test_loader, test_size, classifier, inner_margin, arc_margin, cos_margin);
         std::cout << std::endl;
-    }
 
-    torch::save(network, torch::str("../models/network-", now, ".pt"));
-    if (classifier == "InnerProduct")
-    {
-        torch::save(inner_margin, torch::str("../models/inner_margin-", now, ".pt"));
-    }
-    else if (classifier == "ArcMarginProduct")
-    {
-        torch::save(arc_margin, torch::str("../models/arc_margin-", now, ".pt"));
-    }
-    else if (classifier == "CosineMarginProduct")
-    {
-        torch::save(cos_margin, torch::str("../models/cos_margin-", now, ".pt"));
-    }
-    else
-    {
-        torch::save(inner_margin, torch::str("../models/inner_margin-", now, ".pt"));
-    }
+        torch::save(network, torch::str("../models/network-", now, ".pt"));
+        if (classifier == "InnerProduct")
+        {
+            torch::save(inner_margin, torch::str("../models/inner_margin-", now, ".pt"));
+        }
+        else if (classifier == "ArcMarginProduct")
+        {
+            torch::save(arc_margin, torch::str("../models/arc_margin-", now, ".pt"));
+        }
+        else if (classifier == "CosineMarginProduct")
+        {
+            torch::save(cos_margin, torch::str("../models/cos_margin-", now, ".pt"));
+        }
+        else
+        {
+            torch::save(inner_margin, torch::str("../models/inner_margin-", now, ".pt"));
+        }
 
-    torch::save(*generator_optimizer, torch::str("../models/network-optimizer-", now, ".pt"));
-
-    // std::vector<std::string> images_paths = get_file_data("../data/images.txt");
-    // cv::Mat frame = cv::imread(images_paths[0]);
-    // cv::imshow("Input Image", frame);
-    // cv::waitKey(0);
-    // frame.release();
+        torch::save(*generator_optimizer, torch::str("../models/network-optimizer-", now, ".pt"));
+    }
 
     return 0;
 }
