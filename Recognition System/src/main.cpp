@@ -75,8 +75,8 @@ int main(int argc, char **argv)
 
     torch::manual_seed(now);
 
-    // if (torch::cuda::is_available())
-    //     config.device = torch::kCUDA;
+    if (torch::cuda::is_available())
+        config.device = torch::kCUDA;
     std::cout << "Running on: "
               << (config.device == torch::kCUDA ? "CUDA" : "CPU") << std::endl;
 

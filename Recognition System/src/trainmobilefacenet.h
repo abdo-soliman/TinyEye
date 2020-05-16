@@ -29,6 +29,22 @@ void train(
 {
     size_t index = 0;
     network->train();
+    if (classifier == "InnerProduct")
+    {
+        inner_margin->train();
+    }
+    else if (classifier == "ArcMarginProduct")
+    {
+        arc_margin->train();
+    }
+    else if (classifier == "CosineMarginProduct")
+    {
+        cos_margin->train();
+    }
+    else
+    {
+        inner_margin->train();
+    }
     float Loss = 0, Acc = 0;
     auto criterion = torch::nn::CrossEntropyLoss();
 

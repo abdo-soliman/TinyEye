@@ -19,6 +19,22 @@ void test(mobilefacenet &network, DataLoader &loader, size_t data_size, std::str
 {
     size_t index = 0;
     network->eval();
+    if (classifier == "InnerProduct")
+    {
+        inner_margin->eval();
+    }
+    else if (classifier == "ArcMarginProduct")
+    {
+        arc_margin->eval();
+    }
+    else if (classifier == "CosineMarginProduct")
+    {
+        cos_margin->eval();
+    }
+    else
+    {
+        inner_margin->eval();
+    }
     torch::NoGradGuard no_grad;
     float Loss = 0, Acc = 0;
     auto criterion = torch::nn::CrossEntropyLoss();

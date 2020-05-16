@@ -7,7 +7,7 @@
 struct Config
 {
     int image_size = 112;
-    int features = 128;
+    int features = 512;
     size_t train_batch_size = 8;
     size_t test_batch_size = 200;
     size_t iterations = 16;
