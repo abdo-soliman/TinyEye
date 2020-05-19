@@ -33,7 +33,7 @@ void test(mobilefacenet &network, DataLoader &loader, size_t data_size, std::str
     }
     else
     {
-        inner_margin->eval();
+        arc_margin->eval();
     }
     torch::NoGradGuard no_grad;
     float Loss = 0, Acc = 0;
@@ -61,7 +61,7 @@ void test(mobilefacenet &network, DataLoader &loader, size_t data_size, std::str
         }
         else
         {
-            margin_out = inner_margin->forward(output, targets);
+            margin_out = arc_margin->forward(output, targets);
         }
 
         // auto loss = torch::nll_loss(output, targets);

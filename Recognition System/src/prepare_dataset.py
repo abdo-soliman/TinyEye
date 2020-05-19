@@ -1,21 +1,45 @@
 from imutils import paths
+from os import listdir, remove
+from os.path import join
 import random
 
 data_path = "../data/faces"
-images_paths = list(paths.list_images(data_path))
-random.shuffle(images_paths)
-
+train_perc = 0.9
+train_images_paths = []
+test_images_paths = []
+train_labels = []
+test_labels = []
 labels = []
-for image_path in images_paths:
-    labels.append(image_path.split("/")[-2])
 
-data_len = len(images_paths)
-train_len = int(0.9*data_len)
+for folder in listdir(data_path):
+    folder = join(data_path, folder)
+    file_names = listdir(folder)
+    random.shuffle(file_names)
+    train_size = int(len(file_names)* train_perc)
+    for file_name in file_names[:train_size]:
+        file_name = join(folder, file_name)
+        train_images_paths.append(file_name)
+        train_labels.append(file_name.split("/")[-2])
+        labels.append(file_name.split("/")[-2])
+    for file_name in file_names[train_size:]:
+        file_name = join(folder, file_name)
+        test_images_paths.append(file_name)
+        test_labels.append(file_name.split("/")[-2])
+        labels.append(file_name.split("/")[-2])
+# images_paths = list(paths.list_images(data_path))
+# random.shuffle(images_paths)
 
-train_images_paths = images_paths[:train_len]
-train_labels = labels[:train_len]
-test_images_paths = images_paths[-train_len:]
-test_labels = labels[-train_len:]
+# labels = []
+# for image_path in images_paths:
+#     labels.append(image_path.split("/")[-2])
+
+# data_len = len(images_paths)
+# train_len = int(0.9*data_len)
+
+# train_images_paths = images_paths[:train_len]
+# train_labels = labels[:train_len]
+# test_images_paths = images_paths[train_len:]
+# test_labels = labels[train_len:]
 
 unique_labels = list(set(labels))
 # unique_train_labels = list(set(train_labels))

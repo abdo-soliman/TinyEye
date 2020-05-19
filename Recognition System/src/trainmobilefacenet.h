@@ -43,7 +43,7 @@ void train(
     }
     else
     {
-        inner_margin->train();
+        arc_margin->train();
     }
     float Loss = 0, Acc = 0;
     auto criterion = torch::nn::CrossEntropyLoss();
@@ -78,7 +78,7 @@ void train(
         }
         else
         {
-            margin_out = inner_margin->forward(output, targets);
+            margin_out = arc_margin->forward(output, targets);
         }
 
         // std::cout << "after margin forward" << std::endl;

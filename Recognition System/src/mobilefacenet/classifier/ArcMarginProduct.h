@@ -26,16 +26,20 @@ struct ArcMarginProductImpl : torch::nn::Module
     torch::Tensor forward(torch::Tensor x, torch::Tensor label)
     {
         auto cosine = torch::nn::functional::linear(torch::nn::functional::normalize(x), torch::nn::functional::normalize(weight));
+        cosine.to(config.device);
         auto sine = torch::sqrt(1.0 - torch::pow(cosine, 2));
+        sine.to(config.device);
         auto phi = cosine * cos_m - sine * sin_m;
+        phi.to(config.device);
 
         if (_easy_margin)
             phi = torch::where(cosine > 0, phi, cosine);
         else
             phi = torch::where((cosine - th) > 0, phi, cosine - mm);
 
-        // #one_hot = torch.zeros(cosine.size(), device='cuda' if torch.cuda.is_available() else 'cpu')
-        auto one_hot = torch::zeros_like(cosine, config.device);
+        auto one_hot = torch::zeros(cosine.sizes(), config.device);
+        // auto one_hot = torch::zeros_like(cosine, config.device);
+        one_hot.to(config.device);
         one_hot.scatter_(1, label.view({-1, 1}), 1);
         auto output = (one_hot * phi) + ((1.0 - one_hot) * cosine);
         output = output * _s;

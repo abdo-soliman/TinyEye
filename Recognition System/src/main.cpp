@@ -102,12 +102,9 @@ int main(int argc, char **argv)
     network->to(config.device);
     // std::cout << "constructed network ...\n";
 
-    InnerProduct inner_margin = InnerProduct(config.features, std::stoi(faces_count[0]));
     ArcMarginProduct arc_margin = ArcMarginProduct(config.features, std::stoi(faces_count[0]), easy_margin);
+    InnerProduct inner_margin = InnerProduct(config.features, std::stoi(faces_count[0]));
     CosineMarginProduct cos_margin = CosineMarginProduct(config.features, std::stoi(faces_count[0]));
-    inner_margin->to(config.device);
-    arc_margin->to(config.device);
-    cos_margin->to(config.device);
 
     std::cout << faces_count[0] << "\n";
 
@@ -127,7 +124,7 @@ int main(int argc, char **argv)
     else if (optimizer == "SGD")
     {
         generator_optimizer = new torch::optim::SGD(
-            network->parameters(), torch::optim::SGDOptions(2e-4).momentum(0.5));
+            network->parameters(), torch::optim::SGDOptions(0.01).momentum(0.9));
     }
     else
     {
@@ -142,19 +139,23 @@ int main(int argc, char **argv)
 
     if (classifier == "InnerProduct")
     {
+        inner_margin->to(config.device);
         generator_optimizer->add_parameters(inner_margin->parameters());
     }
     else if (classifier == "ArcMarginProduct")
     {
+        arc_margin->to(config.device);
         generator_optimizer->add_parameters(arc_margin->parameters());
     }
     else if (classifier == "CosineMarginProduct")
     {
+        cos_margin->to(config.device);
         generator_optimizer->add_parameters(cos_margin->parameters());
     }
     else
     {
-        generator_optimizer->add_parameters(inner_margin->parameters());
+        arc_margin->to(config.device);
+        generator_optimizer->add_parameters(arc_margin->parameters());
     }
 
     if (resume)
