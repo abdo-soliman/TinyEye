@@ -47,6 +47,7 @@ void train(
     }
     float Loss = 0, Acc = 0;
     auto criterion = torch::nn::CrossEntropyLoss();
+    criterion->to(config.device);
 
     for (auto &batch : loader)
     {

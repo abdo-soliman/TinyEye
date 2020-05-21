@@ -34,8 +34,8 @@ struct mobilefacenetImpl : torch::nn::Module
         //     // std::cout << m << std::endl;
         //     // if (instanceof <torch::nn::Conv2d>(m))
         //     // {
-        //         n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels;
-        //         m.weight.data.normal_(0, std::math.sqrt(2. / n));
+        //         // auto n = m->kernel_size[0] * m->kernel_size[1] * m->out_channels;
+        //         // m->weight.data.normal_(0, sqrt(2. / n));
         //     // }
         //     // else if (instanceof <torch::nn::BatchNorm2d>(m))
         //     // {

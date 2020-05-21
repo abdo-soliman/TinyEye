@@ -38,6 +38,7 @@ void test(mobilefacenet &network, DataLoader &loader, size_t data_size, std::str
     torch::NoGradGuard no_grad;
     float Loss = 0, Acc = 0;
     auto criterion = torch::nn::CrossEntropyLoss();
+    criterion->to(config.device);
 
     for (const auto &batch : loader)
     {
