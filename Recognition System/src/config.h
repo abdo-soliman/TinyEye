@@ -6,6 +6,8 @@
 
 struct Config
 {
+    int image_width = 96;
+    int image_height = 112;
     int image_size = 112;
     int features = 128;
     size_t train_batch_size = 8;

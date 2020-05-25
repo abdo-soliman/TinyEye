@@ -91,7 +91,7 @@ elseif (MSVC)
 			add_compile_options("/std:c++17")
 		endif()
 	else()
-		message(FATAL_ERROR "C++17 is required to build goslayer, but it isn't \
+		message(FATAL_ERROR "C++17 is required to build tinyeye-recognition-system, but it isn't \
 		        supported by this compiler")
 	endif()
 	set(COMPILER_WARNINGS "/Wall")
