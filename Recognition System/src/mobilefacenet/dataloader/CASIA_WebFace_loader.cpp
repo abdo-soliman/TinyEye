@@ -1,4 +1,5 @@
 #include "CASIA_WebFace_loader.h"
+#include <ctime>
 #include <iostream>
 #include <algorithm>
 #include <opencv2/opencv.hpp>
@@ -41,9 +42,16 @@ CASIA_WebFace_loader::CASIA_WebFace_loader(std::string root_dir, std::string map
 
 torch::data::Example<> CASIA_WebFace_loader::get(size_t index)
 {
-    int image_size = config.image_size;
-    std::string path = data[index].first;
     cv::Mat image = cv::imread(images_list[index]);
+
+    srand(clock());
+    if (((double) rand() / (RAND_MAX)) >= 0.5)
+        direction = 1;
+    else
+        direction = -1;
+
+    cv::flip(image, image, direction);
+
     cv::Mat img;
     image.convertTo(img, CV_32FC1);
     img = (img - 127.5) / 128.0;
