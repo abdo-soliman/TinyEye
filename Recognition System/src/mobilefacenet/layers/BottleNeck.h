@@ -6,6 +6,8 @@
 
 #include "config.h"
 
+namespace mobile_facenet
+{
 struct BottleNeckImpl : torch::nn::Module
 {
     torch::nn::Sequential conv;
@@ -43,5 +45,6 @@ struct BottleNeckImpl : torch::nn::Module
 };
 
 TORCH_MODULE(BottleNeck);
+} // namespace mobile_facenet
 
 #endif

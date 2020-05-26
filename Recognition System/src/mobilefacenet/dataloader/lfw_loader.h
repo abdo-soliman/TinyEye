@@ -8,11 +8,11 @@
 
 namespace mobile_facenet
 {
-class lfw_loader
+class lfw_loader : public torch::data::datasets::Dataset<lfw_loader>
 {
 public:
     lfw_loader(const std::vector<std::string> &images_left, const std::vector<std::string> &images_right);
-    std::vector<torch::Tensor> get(size_t index);
+    torch::data::Example<> get(size_t index);
     torch::optional<size_t> size() const;
 
 private:

@@ -3,6 +3,8 @@
 
 #include <torch/torch.h>
 
+namespace mobile_facenet
+{
 struct ConvBlockLinearDWImpl : torch::nn::Module
 {
     ConvBlockLinearDWImpl(int input, int output, int kernel_size, int stride, int padding)
@@ -29,5 +31,6 @@ struct ConvBlockLinearDWImpl : torch::nn::Module
 };
 
 TORCH_MODULE(ConvBlockLinearDW);
+} // namespace mobile_facenet
 
 #endif

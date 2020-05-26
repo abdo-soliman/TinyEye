@@ -3,6 +3,8 @@
 
 #include <torch/torch.h>
 
+namespace mobile_facenet
+{
 struct ConvBlockImpl : torch::nn::Module
 {
     ConvBlockImpl(int input, int output, int kernel_size, int stride, int padding)
@@ -24,5 +26,6 @@ struct ConvBlockImpl : torch::nn::Module
 };
 
 TORCH_MODULE(ConvBlock);
+} // namespace mobile_facenet
 
 #endif

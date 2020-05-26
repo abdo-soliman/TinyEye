@@ -3,8 +3,9 @@
 
 #include <string>
 #include <vector>
-#include <algorithm>
 #include <fstream>
+#include <iostream>
+#include <algorithm>
 
 /**
  * @param std::string
@@ -21,8 +22,9 @@ bool is_int(const std::string &s);
 bool is_float(const std::string &s);
 template <typename T>
 bool contains(const std::vector<T> &v, const T &value);
+std::vector<std::string> split(std::string src, std::string delimiter);
 
-void write_in_csv(std::string input_file_name, float loss, float acc, int Epoch = 1)
+void write_in_csv(std::string input_file_name, float loss, float acc, int Epoch=1)
 {
     std::ofstream outfile;
 
@@ -138,6 +140,26 @@ template <typename T>
 bool contains(const std::vector<T> &v, const T &value)
 {
     return std::count(v.begin(), v.end(), value);
+}
+
+/**
+ * @param   std::string, std::string
+ * @return  std::vector<std::string>
+ * A utility function that splits string into tokens separated by delimiter
+ */
+std::vector<std::string> split(std::string src, std::string delimiter=" ")
+{
+    std::vector<std::string> tokens;
+
+    size_t pos = 0;
+    std::string token;
+    while ((pos = src.find(delimiter)) != std::string::npos) {
+        tokens.push_back(src.substr(0, pos));
+        src.erase(0, pos + delimiter.length());
+    }
+    tokens.push_back(src);
+
+    return tokens;
 }
 
 #endif

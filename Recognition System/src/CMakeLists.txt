@@ -28,6 +28,6 @@ endif()
 
 if (USE_TENSORFLOW)
     target_link_libraries(tinyeye-controller_module tinyeye-core "${TFLITE_LIB}")
-elseif (USE_PYTORCH)
+elseif (USE_TORCH)
     target_link_libraries(tinyeye-controller_module tinyeye-core "${TORCH_LIBRARIES}")
 endif()

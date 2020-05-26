@@ -10,6 +10,8 @@
 #include "layers/ConvBlockLinear.h"
 #include "layers/ConvBlockLinearDW.h"
 
+namespace mobile_facenet
+{
 struct mobilefacenetImpl : torch::nn::Module
 {
     mobilefacenetImpl(int feature_dim)
@@ -81,5 +83,6 @@ struct mobilefacenetImpl : torch::nn::Module
     }
 };
 TORCH_MODULE(mobilefacenet);
+} // namespace mobile_facenet
 
 #endif

@@ -47,7 +47,7 @@ namespace mobile_facenet
             .to(torch::kFloat);
     }
 
-    std::vector<torch::Tensor> lfw_loader::get(size_t index)
+    torch::data::Example<> lfw_loader::get(size_t index)
     {
         cv::Mat image, imgl, imgr, imgl_fliped, imgr_fliped;
 
@@ -61,12 +61,20 @@ namespace mobile_facenet
         cv::flip(imgr, imgr_fliped, 1);
 
         std::vector<torch::Tensor> imgs;
-        imgs.push_back(image2tensor(imgl));
-        imgs.push_back(image2tensor(imgl_fliped));
-        imgs.push_back(image2tensor(imgr));
-        imgs.push_back(image2tensor(imgr_fliped));
+        auto imgl_tensor = image2tensor(imgl);
+        auto imgl_fliped_tensor = image2tensor(imgl_fliped);
+        auto imgr_tensor = image2tensor(imgr);
+        auto imgr_fliped_tensor = image2tensor(imgr_fliped);
 
-        return imgs;
+        auto left_imgs = torch::cat({imgl_tensor, imgl_fliped_tensor})
+                             .view({2, 3, config.image_height, config.image_width})
+                             .to(torch::kFloat);
+
+        auto right_imgs = torch::cat({imgr_tensor, imgr_fliped_tensor})
+                              .view({2, 3, config.image_height, config.image_width})
+                              .to(torch::kFloat);
+
+        return {left_imgs, right_imgs};
     }
 
     torch::optional<size_t> lfw_loader::size() const
