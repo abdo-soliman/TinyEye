@@ -1,18 +1,17 @@
 #ifndef MOBILEFACENET_H_H_
 #define MOBILEFACENET_H_H_
 
-#include <torch/torch.h>
 #include <vector>
-#include <iostream>
-#include "ConvBlock.h"
-#include "ConvBlockDW.h"
-#include "ConvBlockLinear.h"
-#include "ConvBlockLinearDW.h"
-#include "BottleNeck.h"
+#include <torch/torch.h>
+
+#include "layers/ConvBlock.h"
+#include "layers/BottleNeck.h"
+#include "layers/ConvBlockDW.h"
+#include "layers/ConvBlockLinear.h"
+#include "layers/ConvBlockLinearDW.h"
 
 struct mobilefacenetImpl : torch::nn::Module
 {
-
     mobilefacenetImpl(int feature_dim)
         : conv1(3, 64, 3, 2, 1),
           dw_conv1(64, 64, 3, 1, 1),
@@ -27,22 +26,6 @@ struct mobilefacenetImpl : torch::nn::Module
         register_module("conv2", conv2);
         register_module("linear7", linear7);
         register_module("linear1", linear1);
-
-        // std::cout << (modules()[0])->parameters()[0] << std::endl;
-        // for (auto const &m : modules())
-        // {
-        //     // std::cout << m << std::endl;
-        //     // if (instanceof <torch::nn::Conv2d>(m))
-        //     // {
-        //         n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels;
-        //         m.weight.data.normal_(0, std::math.sqrt(2. / n));
-        //     // }
-        //     // else if (instanceof <torch::nn::BatchNorm2d>(m))
-        //     // {
-        //     //     m.weight.data.fill_(1);
-        //     //     m.bias.data.zero_();
-        //     // }
-        // }
     }
 
     torch::nn::Sequential make_layer()

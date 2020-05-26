@@ -1,9 +1,10 @@
 #ifndef BOTTLENECK_H_H_
 #define BOTTLENECK_H_H_
 
-#include <torch/torch.h>
 #include <vector>
-#include "../config.h"
+#include <torch/torch.h>
+
+#include "config.h"
 
 struct BottleNeckImpl : torch::nn::Module
 {
