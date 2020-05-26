@@ -9,12 +9,12 @@ namespace mobile_facenet
         imgr_list = images_right;
     }
 
-    torch::Tensor image2tensor(cv::Mat img)
+    torch::Tensor lfw_loader::image2tensor(cv::Mat img)
     {
         img.convertTo(img, CV_32FC1);
         img = (img - 127.5) / 128.0;
 
-        if (img.channels == 2)
+        if (img.channels() == 2)
         {
             auto channel = torch::from_blob(
                 img.ptr(),
@@ -47,7 +47,7 @@ namespace mobile_facenet
             .to(torch::kFloat);
     }
 
-    torch::data::Example<> lfw_loader::get(size_t index)
+    std::vector<torch::Tensor> lfw_loader::get(size_t index)
     {
         cv::Mat image, imgl, imgr, imgl_fliped, imgr_fliped;
 

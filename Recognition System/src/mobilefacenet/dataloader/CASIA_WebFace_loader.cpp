@@ -46,6 +46,7 @@ namespace mobile_facenet
         assert(!img.empty() && img.channels() >= 2);
 
         srand(clock());
+        int direction = 0;
         if (((double)rand() / (RAND_MAX)) >= 0.5)
             direction = 1;
         else

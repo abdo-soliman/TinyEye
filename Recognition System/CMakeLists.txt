@@ -5,19 +5,20 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake.modules/")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+set(CMAKE_PREFIX_PATH "")
 
-option(USE_PYTORCH "Build with Pytorch" ON)
+option(USE_TORCH "Build with Pytorch" OFF)
 option(USE_TENSORFLOW "Build with tensorflow" OFF)
-set(LIB_TORCH_PATH "~/libtorch" CACHE PATH "Path to libtorch folder that conatain the C library of Pytorch and its headers")
-set(LIB_TENSORFLOW_PATH "/path/to/tensorflow/lite" CACHE PATH "Path to tensorflow-lite folder that conatain the C library and its headers")
 
-if (USE_PYTORCH)
-	set(CMAKE_PREFIX_PATH ${LIB_TORCH_PATH})
+if (USE_TORCH)
+	list(APPEND CMAKE_PREFIX_PATH $ENV{LIB_TORCH_PATH})
 	set(USE_TENSORFLOW OFF) # make sure that no one accidentally enable both libraries
 endif()
 
 if (USE_TENSORFLOW)
 	set(USE_PYTORCH OFF) # make sure that no one accidentally enable both libraries
+	set(TFLITE_LIB "$ENV{LIB_TENSORFLOW_PATH}/lib/libtensorflow-lite.a")
+	set(TFLITE_INC "$ENV{LIB_TENSORFLOW_PATH}/include")
 endif()
 
 cmake_policy(SET CMP0069 NEW)
