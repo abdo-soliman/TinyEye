@@ -8,3 +8,4 @@ src/*.out
 src/test.*
 src/*.in
 models/*
+src/python/*
