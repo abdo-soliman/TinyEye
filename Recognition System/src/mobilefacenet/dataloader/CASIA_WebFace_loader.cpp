@@ -45,6 +45,8 @@ namespace mobile_facenet
         cv::Mat img = cv::imread(images_list[index]);
         assert(!img.empty() && img.channels() >= 2);
 
+        cv::resize(img, img, cv::Size(config.image_width, config.image_height));
+
         srand(clock());
         int direction = 0;
         if (((double)rand() / (RAND_MAX)) >= 0.5)

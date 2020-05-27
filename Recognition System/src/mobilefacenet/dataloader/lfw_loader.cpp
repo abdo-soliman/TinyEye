@@ -57,6 +57,9 @@ namespace mobile_facenet
         assert(!imgl.empty() && imgl.channels() >= 2);
         assert(!imgr.empty() && imgr.channels() >= 2);
 
+        cv::resize(imgl, imgl, cv::Size(config.image_width, config.image_height));
+        cv::resize(imgr, imgr, cv::Size(config.image_width, config.image_height));
+
         cv::flip(imgl, imgl_fliped, 1);
         cv::flip(imgr, imgr_fliped, 1);
 
