@@ -11,15 +11,14 @@
 
 namespace mobile_facenet
 {
-std::string lfw_evaluator::format(const std::string &root, const std::string &foldername,
-                                  const std::string &filename, const std::string &number)
+std::string lfw_evaluator::format(std::string root, std::string foldername, std::string filename, std::string number)
 {
     std::string formated_number = std::string(4 - number.size(), '0') + number;
 
     return root + '/' + foldername + '/' + filename + '/' + filename + '_' + formated_number + ".jpg";
 }
 
-void lfw_evaluator::parse_pairs(const std::string &root, const std::string &foldername, const std::string &pairs_filename,
+void lfw_evaluator::parse_pairs(std::string root, std::string foldername, std::string pairs_filename,
                                 std::vector<std::string> &nameLs, std::vector<std::string> &nameRs, std::vector<int> &flags)
 {
     std::ifstream pairs_file;
@@ -48,11 +47,6 @@ void lfw_evaluator::parse_pairs(const std::string &root, const std::string &fold
                     nameLs.push_back(format(root, foldername, tokens[0], tokens[1]));
                     nameRs.push_back(format(root, foldername, tokens[2], tokens[3]));
                     flags.push_back(-1);
-                }
-                else
-                {
-                    i++;
-                    continue;
                 }
 
                 i++;
@@ -218,26 +212,51 @@ void lfw_evaluator::evaluate(mobilefacenet& network, lfw_loader& dataset, const 
     auto loader = torch::data::make_data_loader<torch::data::samplers::SequentialSampler>(
         std::move(dataset), config.test_batch_size);
 
-    torch::Tensor left_list[6000];
-    torch::Tensor right_list[6000];
     int index = 0;
 	size_t count = 0;
+
+    torch::Tensor left_features, right_features;
     for (const auto &batch : *loader)
     {
 		count += config.test_batch_size;
 		std::cout << "extracing deep features from the face pair " << count << "...\n";
+
+        int batch_index = 0;
+        torch::Tensor left_batch, right_batch;
         for (const auto &sample : batch)
         {
-            auto left_imgs = sample.data.to(config.device);
-            auto right_imgs = sample.target.to(config.device);
-            left_list[index] = (network->forward(left_imgs)).view({1, config.features*2});
-            right_list[index] = (network->forward(right_imgs)).view({1, config.features*2});
-            index++;
+            auto left_sample = sample.data.to(config.device);
+            auto right_sample = sample.target.to(config.device);
+
+            if (batch_index == 0)
+            {
+                left_batch = left_sample;
+                right_batch = right_sample;
+            }
+            else
+            {
+                left_batch = torch::cat({left_batch, left_sample}).view({2*(batch_index+1), 3, config.image_height, config.image_width}).to(torch::kFloat);
+                right_batch = torch::cat({right_batch, right_sample}).view({2*(batch_index+1), 3, config.image_height, config.image_width}).to(torch::kFloat);
+            }
+            batch_index++;
         }
+
+        auto left_batch_output = (network->forward(left_batch)).view({config.test_batch_size, config.features*2});
+        auto right_batch_output = (network->forward(right_batch)).view({config.test_batch_size, config.features*2});
+
+        if (index == 0)
+        {
+            left_features = left_batch_output;
+            right_features = right_batch_output;
+        }
+        else
+        {
+            left_features = torch::cat({left_features, left_batch_output}).view({config.test_batch_size*(index+1), config.features*2}).to(torch::kFloat);
+            right_features = torch::cat({right_features, right_batch_output}).view({config.test_batch_size*(index+1), config.features*2}).to(torch::kFloat);
+        }
+        index++;
     }
 
-    auto left_features = torch::cat({left_list}).view({6000, config.features*2});
-    auto right_features = torch::cat({right_list}).view({6000, config.features*2});
     std::vector<float> accs = evaluation_10_fold(left_features, right_features, flags);
 
     float sum = 0;
