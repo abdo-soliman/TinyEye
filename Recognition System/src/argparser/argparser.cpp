@@ -8,7 +8,7 @@ void ArgumentParser::parse(int argc, char** argv)
     for(int i = 1; i < argc; i++)
 	{
         std::string option = argv[i++];
-        if (!contains(options, option) || i >= argc)
+        if (!utils::contains(options, option) || i >= argc)
         {
             help();
             exit(-1);
@@ -19,13 +19,13 @@ void ArgumentParser::parse(int argc, char** argv)
 		switch(options_type[option])
 		{
             case 'b':
-				valid_value = is_bool(value);
+				valid_value = utils::is_bool(value);
 				break;
 			case 'i':
-                valid_value = is_int(value);
+                valid_value = utils::is_int(value);
 				break;
 			case 'f':
-				valid_value = is_float(value);
+				valid_value = utils::is_float(value);
 				break;
 			default:
                 valid_value = true;
@@ -48,7 +48,7 @@ void ArgumentParser::add_option(std::string name, char type, std::string default
     if (!(type == 'b' || type == 'i' || type == 'f' || type == 's'))
         throw "Error: Invalid type type for argument";
 
-    if (contains(options, name))
+    if (utils::contains(options, name))
         throw "Error: Option already exist";
 
     options.push_back(name);
@@ -77,13 +77,13 @@ void ArgumentParser::add_option(std::string name, char type, std::string default
     switch (type)
     {
         case 'b':
-            valid_value = is_bool(default_value);
+            valid_value = utils::is_bool(default_value);
             break;
         case 'i':
-            valid_value = is_int(default_value);
+            valid_value = utils::is_int(default_value);
             break;
         case 'f':
-            valid_value = is_float(default_value);
+            valid_value = utils::is_float(default_value);
             break;
         default:
             valid_value = true;
@@ -100,7 +100,7 @@ void ArgumentParser::add_option(std::string name, char type, std::string default
 
 void ArgumentParser::get_option(std::string arg, bool& value)
 {
-    if (contains(options, arg))
+    if (utils::contains(options, arg))
     {
         if (options_values[arg] == "true")
             value = true;
@@ -115,7 +115,7 @@ void ArgumentParser::get_option(std::string arg, bool& value)
 
 void ArgumentParser::get_option(std::string arg, int& value)
 {
-    if (contains(options, arg))
+    if (utils::contains(options, arg))
     {
         value = std::stoi(options_values[arg]);
         return;
@@ -127,7 +127,7 @@ void ArgumentParser::get_option(std::string arg, int& value)
 
 void ArgumentParser::get_option(std::string arg, float& value)
 {
-    if (contains(options, arg))
+    if (utils::contains(options, arg))
     {
         value = std::stof(options_values[arg]);
         return;
@@ -139,7 +139,7 @@ void ArgumentParser::get_option(std::string arg, float& value)
 
 void ArgumentParser::get_option(std::string arg, std::string& value)
 {
-    if (contains(options, arg))
+    if (utils::contains(options, arg))
     {
         value = options_values[arg];
         return;

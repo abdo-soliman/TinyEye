@@ -7,7 +7,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 set(CMAKE_PREFIX_PATH "")
 
-option(USE_TORCH "Build with Pytorch" OFF)
+option(USE_TORCH "Build with Pytorch" ON)
 option(USE_TENSORFLOW "Build with tensorflow" OFF)
 
 if (USE_TORCH)

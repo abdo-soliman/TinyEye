@@ -7,14 +7,14 @@
 
 namespace mobile_facenet
 {
-    CASIA_WebFace_loader::CASIA_WebFace_loader(std::string root_dir, std::string maping_filename)
+    CASIA_WebFace_loader::CASIA_WebFace_loader(std::string maping_filename)
     {
         std::ifstream input_file;
-        std::vector<std::string> images_list;
-        std::vector<long> labels_list;
+        // std::vector<std::string> images_list;
+        // std::vector<long> labels_list;
         try
         {
-            input_file.open(root_dir + "/" + maping_filename);
+            input_file.open(maping_filename);
             if (input_file.is_open())
             {
                 std::string image_path;
@@ -26,6 +26,7 @@ namespace mobile_facenet
                 }
 
                 num_classes = std::unique(labels_list.begin(), labels_list.end()) - labels_list.begin();
+                std::cout << "num of classes " << num_classes << std::endl;
             }
             else
             {

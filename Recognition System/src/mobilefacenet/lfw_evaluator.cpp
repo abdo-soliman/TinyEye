@@ -4,7 +4,7 @@
 #include <fstream>
 #include <iostream>
 
-#include "utils.h"
+#include "../utils.h"
 #include "config.h"
 #include "dataloader/lfw_loader.h"
 
@@ -36,7 +36,7 @@ void lfw_evaluator::parse_pairs(const std::string &root, const std::string &fold
             int i = 0;
             while (std::getline(pairs_file, line))
             {
-                tokens = split(line, "\t");
+                tokens = utils::split(line, "\t");
                 if (tokens.size() == 3)
                 {
                     nameLs.push_back(format(root, foldername, tokens[0], tokens[1]));

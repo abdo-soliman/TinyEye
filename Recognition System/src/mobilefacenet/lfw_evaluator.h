@@ -6,6 +6,7 @@
 #include <torch/torch.h>
 
 #include "mobilefacenet.h"
+#include "utils.h"
 #include "dataloader/lfw_loader.h"
 
 namespace mobile_facenet
