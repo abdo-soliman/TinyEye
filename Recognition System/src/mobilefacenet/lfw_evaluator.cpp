@@ -206,67 +206,8 @@ std::vector<float> lfw_evaluator::evaluation_10_fold(const torch::Tensor& left_f
     return accs;
 }
 
-void lfw_evaluator::evaluate(mobilefacenet& network, lfw_loader& dataset, const std::vector<int>& flags)
-{
-    network->eval();
-    auto loader = torch::data::make_data_loader<torch::data::samplers::SequentialSampler>(
-        std::move(dataset), config.test_batch_size);
-
-    int index = 0;
-	size_t count = 0;
-
-    torch::Tensor left_features, right_features;
-    for (const auto &batch : *loader)
-    {
-		count += config.test_batch_size;
-		std::cout << "extracing deep features from the face pair " << count << "...\n";
-
-        int batch_index = 0;
-        torch::Tensor left_batch, right_batch;
-        for (const auto &sample : batch)
-        {
-            auto left_sample = sample.data.to(config.device);
-            auto right_sample = sample.target.to(config.device);
-
-            if (batch_index == 0)
-            {
-                left_batch = left_sample;
-                right_batch = right_sample;
-            }
-            else
-            {
-                left_batch = torch::cat({left_batch, left_sample}).view({2*(batch_index+1), 3, config.image_height, config.image_width}).to(torch::kFloat);
-                right_batch = torch::cat({right_batch, right_sample}).view({2*(batch_index+1), 3, config.image_height, config.image_width}).to(torch::kFloat);
-            }
-            batch_index++;
-        }
-
-        auto left_batch_output = (network->forward(left_batch)).view({config.test_batch_size, config.features*2});
-        auto right_batch_output = (network->forward(right_batch)).view({config.test_batch_size, config.features*2});
-
-        if (index == 0)
-        {
-            left_features = left_batch_output;
-            right_features = right_batch_output;
-        }
-        else
-        {
-            left_features = torch::cat({left_features, left_batch_output}).view({config.test_batch_size*(index+1), config.features*2}).to(torch::kFloat);
-            right_features = torch::cat({right_features, right_batch_output}).view({config.test_batch_size*(index+1), config.features*2}).to(torch::kFloat);
-        }
-        index++;
-    }
-
-    std::vector<float> accs = evaluation_10_fold(left_features, right_features, flags);
-
-    float sum = 0;
-    for (int i = 0; i < 10; i++)
-    {
-        sum += accs[i];
-        std::cout << i + 1 << '\t' << accs[i]*100.0 << '\n';
-    }
-
-    std::cout << "--------\n";
-    std::cout << "AVE\t" << (sum / 10.0) * 100.0 << "\n";
-}
+// void lfw_evaluator::evaluate(mobilefacenet& network, std::unique_ptr<StatefulDataLoader<lfw_loader>>& loader, const std::vector<int>& flags)
+// {
+    
+// }
 } // namespace mobile_facenet

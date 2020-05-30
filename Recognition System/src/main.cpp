@@ -73,7 +73,9 @@ int main(int argc, char **argv)
     std::string lfw_root = "../data";
     lfw_evaluator::parse_pairs(lfw_root, "lfw-96x112", "pairs.txt", imgl_list, imgr_list, flags);
 
-    lfw_loader test_dataset = lfw_loader(imgl_list, imgr_list);
+    auto test_dataset = lfw_loader(imgl_list, imgr_list).map(torch::data::transforms::Stack<>());
+    auto test_loader = torch::data::make_data_loader<torch::data::samplers::SequentialSampler>(
+        std::move(test_dataset), config.test_batch_size);
     auto train_dataset = CASIA_WebFace_loader("../data/images.txt").map(torch::data::transforms::Stack<>());
     auto train_size = train_dataset.size().value();
     auto train_loader =
@@ -145,7 +147,7 @@ int main(int argc, char **argv)
         train::train_net(network, *train_loader, *generator_optimizer, i + 1, train_size, classifier, inner_margin, arc_margin);
 
         std::cout << "\nStart testing on lfw\n";
-        lfw_evaluator::evaluate(network, test_dataset, flags);
+        lfw_evaluator::evaluate(network, test_loader, flags);
 
         std::cout << "\nSaving checkpoint...\n";
         torch::save(network, torch::str("../models/network-", now, ".pt"));

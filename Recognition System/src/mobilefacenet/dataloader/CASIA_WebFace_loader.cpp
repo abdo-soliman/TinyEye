@@ -26,7 +26,6 @@ namespace mobile_facenet
                 }
 
                 num_classes = std::unique(labels_list.begin(), labels_list.end()) - labels_list.begin();
-                std::cout << "num of classes " << num_classes << std::endl;
             }
             else
             {
