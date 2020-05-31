@@ -92,6 +92,7 @@ int main(int argc, char **argv)
     arc_margin->to(config.device);
 
     torch::optim::Optimizer *generator_optimizer;
+    torch::optim::Optimizer *margin_optimizer;
     if (optimizer == "Adam")
     {
         generator_optimizer = new torch::optim::Adam(
@@ -100,7 +101,7 @@ int main(int argc, char **argv)
     else if (optimizer == "SGD")
     {
         generator_optimizer = new torch::optim::SGD(
-            network->parameters(), torch::optim::SGDOptions(2e-4).momentum(0.5));
+            network->parameters(), torch::optim::SGDOptions(0.1).momentum(0.5));
     }
     else
     {
@@ -110,15 +111,21 @@ int main(int argc, char **argv)
 
     if (classifier == "InnerProduct")
     {
-        generator_optimizer->add_parameters(inner_margin->parameters());
+        margin_optimizer = new torch::optim::SGD(
+            inner_margin->parameters(), torch::optim::SGDOptions(0.1).momentum(0.5));
+        // generator_optimizer->add_parameters(inner_margin->parameters());
     }
     else if (classifier == "ArcMarginProduct")
     {
-        generator_optimizer->add_parameters(arc_margin->parameters());
+        margin_optimizer = new torch::optim::SGD(
+            arc_margin->parameters(), torch::optim::SGDOptions(0.1).momentum(0.5));
+        // generator_optimizer->add_parameters(arc_margin->parameters());
     }
     else
     {
-        generator_optimizer->add_parameters(inner_margin->parameters());
+        margin_optimizer = new torch::optim::SGD(
+            inner_margin->parameters(), torch::optim::SGDOptions(0.1).momentum(0.5));
+        // generator_optimizer->add_parameters(inner_margin->parameters());
     }
 
     if (resume)
@@ -144,7 +151,7 @@ int main(int argc, char **argv)
     for (size_t i = 0; i < config.iterations; ++i)
     {
         std::cout << "\nStart training...\n";
-        train::train_net(network, *train_loader, *generator_optimizer, i + 1, train_size, classifier, inner_margin, arc_margin);
+        train::train_net(network, *train_loader, *generator_optimizer, *margin_optimizer, i + 1, train_size, classifier, inner_margin, arc_margin);
 
         std::cout << "\nStart testing on lfw\n";
         lfw_evaluator::evaluate(network, test_loader, flags);

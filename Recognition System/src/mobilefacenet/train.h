@@ -19,7 +19,7 @@ private:
     /* data */
 public:
     template <typename DataLoader>
-    static void train_net(mobilefacenet &network, DataLoader &loader, torch::optim::Optimizer &optimizer, size_t epoch, size_t data_size, std::string classifier, InnerProduct &inner_margin, ArcMarginProduct &arc_margin)
+    static void train_net(mobilefacenet &network, DataLoader &loader, torch::optim::Optimizer &optimizer, torch::optim::Optimizer &margin_optimizer, size_t epoch, size_t data_size, std::string classifier, InnerProduct &inner_margin, ArcMarginProduct &arc_margin)
     {
         size_t index = 0;
         network->train();
@@ -43,6 +43,7 @@ public:
             auto data = batch.data.to(config.device);
             auto targets = batch.target.to(config.device).view({-1});
             optimizer.zero_grad();
+            margin_optimizer.zero_grad();
 
             auto output = network->forward(data);
             torch::Tensor margin_out;
@@ -64,9 +65,10 @@ public:
             assert(!std::isnan(loss.template item<float>()));
             auto acc = margin_out.argmax(1).eq(targets).sum();
 
-            optimizer.zero_grad();
+            // optimizer.zero_grad();
             loss.backward();
             optimizer.step();
+            margin_optimizer.step();
 
             Loss += loss.template item<float>();
             Acc += acc.template item<float>();

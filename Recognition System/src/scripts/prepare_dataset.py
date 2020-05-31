@@ -16,13 +16,13 @@ train_indeces = [unique_labels.index(x) for x in labels]
 
 with open("../data/images.txt", "w+") as input_file:
     for i in range(len(images_paths)):
-        input_file.write(
-            images_paths[i] + " " + str(train_indeces[i]) + "\n")
+    	input_file.write(images_paths[i] + " " + str(train_indeces[i]) + "\n")
+    	#if i > 1000:
+    	#	break
 
 with open("../data/map.txt", "w+") as input_file:
     for i in range(len(unique_labels)):
-        input_file.write(
-            unique_labels[i] + " " + str(i) + "\n")
+    	input_file.write(unique_labels[i] + " " + str(i) + "\n")
 
 with open("../data/faces_count.txt", "w+") as input_file:
     input_file.write(str(len(unique_labels)) + "\n")
