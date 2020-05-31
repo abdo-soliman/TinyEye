@@ -6,7 +6,7 @@
 
 struct Config
 {
-    int image_width = 112;
+    int image_width = 96;
     int image_height = 112;
     int image_size = 112;
     int features = 128;

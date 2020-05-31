@@ -7,8 +7,8 @@ namespace mobile_facenet
 {
 struct ConvBlockLinearDWImpl : torch::nn::Module
 {
-    ConvBlockLinearDWImpl(int input, int output, int kernel_size, int stride, int padding)
-        : conv(torch::nn::Conv2dOptions(input, output, kernel_size).stride(stride).bias(false).padding(padding).groups(input)),
+    ConvBlockLinearDWImpl(int input, int output, int kernel_width, int kernel_height, int stride, int padding)
+        : conv(torch::nn::Conv2dOptions(input, output, {kernel_width, kernel_height}).stride(stride).bias(false).padding(padding).groups(input)),
         batch_norm(torch::nn::BatchNorm2dOptions(output))
     {
         register_module("conv", conv);

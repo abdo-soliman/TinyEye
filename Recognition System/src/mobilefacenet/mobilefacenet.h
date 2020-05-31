@@ -18,7 +18,7 @@ struct mobilefacenetImpl : torch::nn::Module
         : conv1(3, 64, 3, 2, 1),
           dw_conv1(64, 64, 3, 1, 1),
           conv2(128, 512, 1, 1, 0),
-          linear7(512, 512, 7, 1, 0),
+          linear7(512, 512, 7, 6, 1, 0),
           linear1(512, feature_dim, 1, 1, 0)
     {
         blocks = make_layer();
