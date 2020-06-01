@@ -2,7 +2,8 @@
 #include <vector>
 #include <fstream>
 #include <iostream>
-
+#include <memory>
+#include <torch/script.h>
 #include "config.h"
 #include "utils.h"
 #include "argparser/cxxopts.hpp"
@@ -84,7 +85,6 @@ int main(int argc, char **argv)
     std::cout << "train data " << train_size << std::endl;
 
     mobilefacenet network(config.features);
-    network->to(config.device);
 
     InnerProduct inner_margin = InnerProduct(config.features, std::stoi(faces_count[0]));
     ArcMarginProduct arc_margin = ArcMarginProduct(config.features, std::stoi(faces_count[0]), easy_margin);
@@ -132,22 +132,23 @@ int main(int argc, char **argv)
     {
         std::cout << "resuming..." << std::endl;
         torch::load(network, model_check);
-        if (classifier == "InnerProduct")
-        {
-            torch::load(inner_margin, innermargin_check);
-        }
-        else if (classifier == "ArcMarginProduct")
-        {
-            torch::load(arc_margin, arcmargin_check);
-        }
-        else
-        {
-            torch::load(inner_margin, innermargin_check);
-        }
+        // if (classifier == "InnerProduct")
+        // {
+        //     torch::load(inner_margin, innermargin_check);
+        // }
+        // else if (classifier == "ArcMarginProduct")
+        // {
+        //     torch::load(arc_margin, arcmargin_check);
+        // }
+        // else
+        // {
+        //     torch::load(inner_margin, innermargin_check);
+        // }
 
-        torch::load(*generator_optimizer, optimizer_check);
+        // torch::load(*generator_optimizer, optimizer_check);
     }
 
+    network->to(config.device);
     for (size_t i = 0; i < config.iterations; ++i)
     {
         std::cout << "\nStart training...\n";
