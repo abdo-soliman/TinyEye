@@ -12,8 +12,8 @@ struct Config
     int features = 128;
     size_t train_batch_size = 8;
     size_t test_batch_size = 10;
-    size_t iterations = 16;
-    size_t log_interval = 20;
+    size_t iterations = 30;
+    size_t log_interval = 1;
     // path must end in delimiter
     std::string infoFilePath = "../data/images.txt";
     torch::DeviceType device = torch::kCPU;

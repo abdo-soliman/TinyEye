@@ -6,6 +6,7 @@
 #include "config.h"
 #include "argparser/cxxopts.hpp"
 #include "mobilefacenet/train.h"
+#include "mobilefacenet/classifier/TrainClassifier.h"
 using namespace mobile_facenet;
 
 int main(int argc, char **argv)
@@ -39,10 +40,13 @@ int main(int argc, char **argv)
     {
         std::cout << "Start training: " << train << std::endl;
         train::train_net(optimizer, classifier, train_batch_size, test_batch_size, iterations, easy_margin, resume, optimizer_check, model_check, innermargin_check, arcmargin_check);
-    }else {
-        std::cout << "No training: " << train << std::endl;
     }
-    
+    else
+    {
+        std::cout << "No training: " << train << std::endl;
+        TrainClassifier train_classifier("../data/faces.txt", "../data/classes_count.txt", model_check, "../data/test.txt");
+        train_classifier.train_loop();
+    }
 
     return 0;
 }

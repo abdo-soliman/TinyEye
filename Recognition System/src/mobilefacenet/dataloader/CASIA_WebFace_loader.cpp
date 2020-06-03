@@ -10,8 +10,6 @@ namespace mobile_facenet
     CASIA_WebFace_loader::CASIA_WebFace_loader(std::string maping_filename)
     {
         std::ifstream input_file;
-        // std::vector<std::string> images_list;
-        // std::vector<long> labels_list;
         try
         {
             input_file.open(maping_filename);
@@ -48,13 +46,9 @@ namespace mobile_facenet
         cv::resize(img, img, cv::Size(config.image_width, config.image_height));
 
         srand(clock());
-        int direction = 0;
         if (((double)rand() / (RAND_MAX)) >= 0.5)
-            direction = 1;
-        else
-            direction = -1;
+            cv::flip(img, img, 1);
 
-        cv::flip(img, img, direction);
         img.convertTo(img, CV_32FC1);
         img = (img - 127.5) / 128.0;
 
@@ -89,7 +83,7 @@ namespace mobile_facenet
             {config.image_height, config.image_width},
             torch::kFloat);
 
-        auto tdata = torch::cat({R, G, B})
+        auto tdata = torch::cat({B, G, R})
                          .view({3, config.image_height, config.image_width})
                          .to(torch::kFloat);
 
