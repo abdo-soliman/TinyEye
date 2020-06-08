@@ -4,17 +4,26 @@ file(GLOB_RECURSE LIB_HEADERS *.h)
 
 list(REMOVE_ITEM LIB_SRC ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
 
-add_library(tinyeye-core ${LIB_SRC} ${LIB_HEADERS})
+add_library(tinyeye-core SHARED ${LIB_HEADERS} ${LIB_SRC})
 add_executable(tinyeye-controller_module main.cpp)
 
+# added for libcaffe
+list(APPEND CMAKE_PREFIX_PATH $ENV{LIB_CAFFE_PATH})
+
 find_package(OpenCV REQUIRED)
+find_package(Caffe REQUIRED)
 
 if(NOT OpenCV_FOUND)
     message(FATAL_ERROR "please make sure libopencv-dev is installed")
 endif()
 
+if(NOT Caffe_FOUND)
+    message(FATAL_ERROR "please make sure libcaffe is installed")
+endif()
+
 include_directories(${OpenCV_INCLUDE_DIRS})
-target_link_libraries(tinyeye-core ${OpenCV_LIBS})
+include_directories(${Caffe_INCLUDE_DIRS})
+target_link_libraries(tinyeye-core ${OpenCV_LIBS} ${Caffe_LIBRARIES})
 
 if (USE_TENSORFLOW)
     include_directories(${TFLITE_INC})

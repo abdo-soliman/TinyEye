@@ -2,6 +2,7 @@
 
 #include <iostream>
 
+#include "config.h"
 #include "dataloaders/img_loader.h"
 
 namespace tinyeye
@@ -30,21 +31,28 @@ torch::Tensor MobileFacenet::get_embeddings(torch::Tensor imgs)
     return net.forward(inputs).toTensor();
 }
 
-// torch::Tensor MobileFacenet::get_embeddings(std::vector<cv::Mat>& imgs)
-// {
-//     std::vector<torch::jit::IValue> inputs;
-//     for (auto& img : imgs)
-//         inputs.push_back(img_loader::img_to_tensor(img));
+torch::Tensor MobileFacenet::get_embeddings(std::vector<cv::Mat>& imgs)
+{
+    std::vector<torch::jit::IValue> inputs;
+    torch::Tensor img_tensor;
+    for (auto& img : imgs)
+    {
+        img_tensor = img_loader::img_to_tensor(img);
+        img_tensor = img_tensor.view({1, 3, config.image_height, config.image_width});
+        inputs.push_back(img_loader::img_to_tensor(img));
+    }
 
-//     return net.forward(inputs).toTensor();
-// }
+    return net.forward(inputs).toTensor();
+}
 
-// torch::Tensor MobileFacenet::get_embeddings(cv::Mat img)
-// {
-//     std::vector<torch::jit::IValue> inputs;
-//     inputs.push_back(img_loader::img_to_tensor(img));
+torch::Tensor MobileFacenet::get_embeddings(cv::Mat& img)
+{
+    std::vector<torch::jit::IValue> inputs;
+    auto img_tensor = img_loader::img_to_tensor(img);
+    img_tensor = img_tensor.view({1, 3, config.image_height, config.image_width});
+    inputs.push_back(img_tensor);
 
-//     return net.forward(inputs).toTensor();
-// }
+    return net.forward(inputs).toTensor();
+}
 } // mobilefacenet
 } // tinyeye

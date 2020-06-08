@@ -17,8 +17,8 @@ class MobileFacenet
 public:
     MobileFacenet(std::string model_path);
     torch::Tensor get_embeddings(torch::Tensor imgs);
-    // torch::Tensor get_embeddings(cv::Mat& img);
-    // torch::Tensor get_embeddings(std::vector<cv::Mat>& imgs);
+    torch::Tensor get_embeddings(std::vector<cv::Mat>& imgs);
+    torch::Tensor get_embeddings(cv::Mat& img);
 
 private:
     torch::jit::script::Module net;

@@ -1,9 +1,11 @@
 #include <iostream>
 
+#include "mtcnn/mtcnn.h"
 #include "classifier/svm.h"
 #include "mobilefacenet/config.h"
 #include "mobilefacenet/mobilefacenet.h"
 #include "mobilefacenet/dataloaders/img_loader.h"
+using namespace tinyeye::mtcnn;
 using namespace tinyeye::mobilefacenet;
 
 std::pair<torch::Tensor, torch::Tensor> create_dataset(std::string map_filepath, MobileFacenet& net, int batch_size)
@@ -56,25 +58,25 @@ int main(int argc, char **argv)
     auto train_labels = train_data.second;
 
     auto svm_model = tinyeye::svm("../../models/classes_map.txt", 128, 9);
-    svm_model.fit(train_embeddings, train_labels);
+    svm_model.fit(train_embeddings, train_labels, true, 5);
 
-    auto test_data = create_dataset("../../data/test_map.txt", net, config.test_batch_size);
-    auto test_embeddings = test_data.first;
-    auto test_labels = test_data.second;
+    MTCNN detector("../../models/mtcnn");
+    cv::Mat img = cv::imread(argv[1]);
+    std::vector<cv::Mat> faces = detector.detect_faces(img, 0.95);
 
-    float correct = 0;
-    int size = test_labels.sizes()[0];
-    for (int i = 0; i < size; i++)
+    std::string name;
+    cv::Mat scaled_face;
+    for (const auto& face : faces)
     {
-        auto prediction = svm_model.predict(test_embeddings.narrow(0, i, 1));
-        auto real = (test_labels.narrow(0, i, 1)).item<long>();
+        cv::resize(face, scaled_face, cv::Size(config.image_width, config.image_height));
+        auto test_embeddings = net.get_embeddings(scaled_face);
 
-        if (prediction == real)
-            correct++;
+        auto prediction = svm_model.predict(test_embeddings);
+        name = svm_model.prediction_to_class(prediction);
+
+        cv::imshow(name, scaled_face);
+        cv::waitKey(0);
     }
-
-    std::cout << "training acc: " << svm_model.final_acc*100 << "%" << std::endl;
-    std::cout << "test acc: " << (correct / size) * 100 << "%" << std::endl;
 
     return 0;
 }

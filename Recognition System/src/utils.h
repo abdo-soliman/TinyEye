@@ -6,91 +6,10 @@
 #include <fstream>
 #include <iostream>
 #include <algorithm>
-#include <torch/torch.h>
 
 class utils
 {
 public:
-    static void write_in_csv(std::string input_file_name, float loss, float acc, int Epoch)
-    {
-        std::ofstream outfile;
-
-        outfile.open(input_file_name.c_str(), std::ios::app); // append instead of overwrite
-        outfile << Epoch << "," << loss << "," << acc << "\n";
-        outfile.close();
-    }
-    
-    static void append_tensors(std::string input_file_name, torch::Tensor data)
-    {
-        std::ofstream outfile;
-
-        outfile.open(input_file_name.c_str(), std::ios::app); // append instead of overwrite
-        outfile << data;
-        outfile.close();
-    }
-
-    static void write_in_file(std::string input_file_name, std::string data)
-    {
-        std::ofstream outfile;
-
-        outfile.open(input_file_name.c_str());
-        outfile << data << "\n";
-        outfile.close();
-    }
-
-    static torch::Tensor get_tensors(std::string input_file_name)
-    {
-        std::vector<float> data;
-        std::string line;
-        std::ifstream input_file(input_file_name);
-        if (input_file.is_open())
-        {
-            getline(input_file, line);
-            while (getline(input_file, line))
-            {
-                std::vector<std::string> splitted = split(line, "]");
-                float tensor;
-                try {
-                    if (splitted.size() > 1)
-                    {
-                        tensor = std::stof(splitted[1]);
-                    } else {
-                        tensor = std::stof(splitted[0]);
-                    }
-                    data.push_back(tensor);
-                } catch (...) {
-                    
-                }
-            }
-            input_file.close();
-        }
-        else
-            std::cout << "Unable to open file";
-
-        auto opts = torch::TensorOptions().dtype(torch::kFloat);
-        torch::Tensor tensors = torch::from_blob(data.data(), {data.size()}, opts).to(torch::kFloat);
-        return tensors;
-    }
-
-    static std::vector<std::string> get_file_data(std::string input_file_name)
-    {
-        std::vector<std::string> data;
-        std::string line;
-        std::ifstream input_file(input_file_name);
-        if (input_file.is_open())
-        {
-            while (getline(input_file, line))
-            {
-                data.push_back(line);
-            }
-            input_file.close();
-        }
-        else
-            std::cout << "Unable to open file";
-
-        return data;
-    }
-
     /**
      * @param   std::string
      * @return  void
