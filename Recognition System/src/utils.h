@@ -11,22 +11,6 @@
 class utils
 {
 public:
-    /**
- * @param std::string
- * @return std::vector
- * get file data
-*/
-    // static std::vector<std::string> get_file_data(std::string input_file_name);
-    // static void write_in_csv(std::string input_file_name, float loss, float acc, int Epoch = 1);
-    // static void write_in_file(std::string input_file_name, std::string data);
-    // static void to_lower(std::string &str);
-    // static bool is_bool(std::string &s);
-    // static bool is_uint(const std::string &s);
-    // static bool is_int(const std::string &s);
-    // static bool is_float(const std::string &s);
-    // template <typename T>
-    // static bool contains(const std::vector<T> &v, const T &value);
-    // static std::vector<std::string> split(std::string src, std::string delimiter);
     static void write_in_csv(std::string input_file_name, float loss, float acc, int Epoch)
     {
         std::ofstream outfile;
@@ -108,20 +92,20 @@ public:
     }
 
     /**
- * @param   std::string
- * @return  void
- * A utility function to convert string to lower case
- */
+     * @param   std::string
+     * @return  void
+     * A utility function to convert string to lower case
+     */
     static void to_lower(std::string &str)
     {
         for_each(str.begin(), str.end(), [](char &c) { c = std::tolower(c); });
     }
 
     /**
- * @param   std::string
- * @return  bool
- * A utility function to check if string is an unsigned integer
- */
+     * @param   std::string
+     * @return  bool
+     * A utility function to check if string is an unsigned integer
+     */
     static bool is_bool(std::string &s)
     {
         to_lower(s);
@@ -132,10 +116,10 @@ public:
     }
 
     /**
- * @param   std::string
- * @return  bool
- * A utility function to check if string is an unsigned integer
- */
+     * @param   std::string
+     * @return  bool
+     * A utility function to check if string is an unsigned integer
+     */
     static bool is_uint(const std::string &s)
     {
         return !s.empty() && std::find_if(s.begin(),
@@ -143,10 +127,10 @@ public:
     }
 
     /**
- * @param   std::string
- * @return  bool
- * A utility function to check if string is an integer
- */
+     * @param   std::string
+     * @return  bool
+     * A utility function to check if string is an integer
+     */
     static bool is_int(const std::string &s)
     {
         std::string number = s;
@@ -157,10 +141,10 @@ public:
     }
 
     /**
- * @param   std::string
- * @return  bool
- * A utility function to check if string is a floating point number
- */
+     * @param   std::string
+     * @return  bool
+     * A utility function to check if string is a floating point number
+     */
     static bool is_float(const std::string &s)
     {
         std::string::size_type sz;
@@ -178,10 +162,10 @@ public:
     }
 
     /**
- * @param   std::vector<T>, T
- * @return  bool
- * A utility function to check if vector contains a value
- */
+     * @param   std::vector<T>, T
+     * @return  bool
+     * A utility function to check if vector contains a value
+     */
     template <typename T>
     static bool contains(const std::vector<T> &v, const T &value)
     {
@@ -189,10 +173,10 @@ public:
     }
 
     /**
- * @param   std::string, std::string
- * @return  std::vector<std::string>
- * A utility function that splits string into tokens separated by delimiter
- */
+     * @param   std::string, std::string
+     * @return  std::vector<std::string>
+     * A utility function that splits string into tokens separated by delimiter
+     */
     static std::vector<std::string> split(std::string src, std::string delimiter = " ")
     {
         std::vector<std::string> tokens;

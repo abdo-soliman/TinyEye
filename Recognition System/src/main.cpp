@@ -1,52 +1,80 @@
-#include <string>
-#include <vector>
-#include <fstream>
 #include <iostream>
-#include <memory>
-#include "config.h"
-#include "argparser/cxxopts.hpp"
-#include "mobilefacenet/train.h"
-#include "mobilefacenet/classifier/TrainClassifier.h"
-using namespace mobile_facenet;
+
+#include "classifier/svm.h"
+#include "mobilefacenet/config.h"
+#include "mobilefacenet/mobilefacenet.h"
+#include "mobilefacenet/dataloaders/img_loader.h"
+using namespace tinyeye::mobilefacenet;
+
+std::pair<torch::Tensor, torch::Tensor> create_dataset(std::string map_filepath, MobileFacenet& net, int batch_size)
+{
+    auto dataset = img_loader(map_filepath);
+    long size = dataset.size().value();
+
+    auto loader = torch::data::make_data_loader<torch::data::samplers::SequentialSampler>(
+        std::move(dataset.map(torch::data::transforms::Stack<>())), batch_size);
+
+    torch::Tensor labels;
+    torch::Tensor embeddings;
+    int index = 0;
+    int current_batch_size = 0;
+    for (auto& batch : *loader)
+    {
+        auto data = batch.data.to(config.device);
+        auto targets = batch.target.to(config.device).view({-1});
+        current_batch_size = targets.sizes()[0];
+
+        auto current_embeddings = net.get_embeddings(data);
+
+        if (index == 0)
+        {
+            embeddings = current_embeddings;
+            labels = targets;
+        }
+        else if (batch_size*(index+1) >= size)
+        {
+            embeddings = torch::cat({embeddings, current_embeddings}).view({size, 128}).to(torch::kFloat);
+            labels = torch::cat({labels, targets}).view({size}).to(torch::kLong);
+        }
+        else
+        {
+            embeddings = torch::cat({embeddings, current_embeddings}).view({(index+1)*current_batch_size, 128}).to(torch::kFloat);
+            labels = torch::cat({labels, targets}).view({(index+1)*current_batch_size}).to(torch::kLong);
+        }
+
+        index++;
+    }
+
+    return std::make_pair(embeddings, labels);
+}
 
 int main(int argc, char **argv)
 {
-    cxxopts::Options options("test", "A brief description");
+    MobileFacenet net("../../models/mobilefacenet.pt");
+    auto train_data = create_dataset("../../data/train_map.txt", net, config.train_batch_size);
+    auto train_embeddings = train_data.first;
+    auto train_labels = train_data.second;
 
-    options.add_options()("iterations", "number of iterations or EPOCHs", cxxopts::value<int>()->default_value("16"))("optimizer", "model optimizer (Adam, SGD)", cxxopts::value<std::string>()->default_value("Adam"))("train-batch", "train batch size", cxxopts::value<int>()->default_value("8"))("test-batch", "test batch size", cxxopts::value<int>()->default_value("200"))("classifier", "classifier (InnerProduct, ArcMarginProduct)", cxxopts::value<std::string>()->default_value("InnerProduct"))("easy_margin", "easy margin for ArcMarginProduct", cxxopts::value<bool>()->default_value("false"))("resume", "resume training from last check point", cxxopts::value<bool>()->default_value("false"))("optimizer-check", "last checkpoint for optimizer", cxxopts::value<std::string>()->default_value(""))("model-check", "last checkpoint for model", cxxopts::value<std::string>()->default_value(""))("innermargin-check", "last checkpoint for innermargin", cxxopts::value<std::string>()->default_value(""))("arcmargin-check", "last checkpoint for arcmargin", cxxopts::value<std::string>()->default_value(""))("train", "train network", cxxopts::value<bool>()->default_value("false"))("h,help", "Print usage");
+    auto svm_model = tinyeye::svm("../../models/classes_map.txt", 128, 9);
+    svm_model.fit(train_embeddings, train_labels);
 
-    auto result = options.parse(argc, argv);
+    auto test_data = create_dataset("../../data/test_map.txt", net, config.test_batch_size);
+    auto test_embeddings = test_data.first;
+    auto test_labels = test_data.second;
 
-    if (result.count("help"))
+    float correct = 0;
+    int size = test_labels.sizes()[0];
+    for (int i = 0; i < size; i++)
     {
-        std::cout << options.help() << std::endl;
-        exit(0);
+        auto prediction = svm_model.predict(test_embeddings.narrow(0, i, 1));
+        auto real = (test_labels.narrow(0, i, 1)).item<long>();
+
+        if (prediction == real)
+            correct++;
     }
 
-    std::string optimizer = result["optimizer"].as<std::string>();
-    std::string classifier = result["classifier"].as<std::string>();
-    size_t train_batch_size = result["train-batch"].as<int>();
-    size_t test_batch_size = result["test-batch"].as<int>();
-    size_t iterations = result["iterations"].as<int>();
-    bool easy_margin = result["easy_margin"].as<bool>();
-    bool resume = result["resume"].as<bool>();
-    std::string optimizer_check = result["optimizer-check"].as<std::string>();
-    std::string model_check = result["model-check"].as<std::string>();
-    std::string innermargin_check = result["innermargin-check"].as<std::string>();
-    std::string arcmargin_check = result["arcmargin-check"].as<std::string>();
-    bool train = result["train"].as<bool>();
-
-    if (train == true)
-    {
-        std::cout << "Start training: " << train << std::endl;
-        train::train_net(optimizer, classifier, train_batch_size, test_batch_size, iterations, easy_margin, resume, optimizer_check, model_check, innermargin_check, arcmargin_check);
-    }
-    else
-    {
-        std::cout << "No training: " << train << std::endl;
-        TrainClassifier train_classifier("../data/faces.txt", "../data/classes_count.txt", model_check, "../data/test.txt");
-        train_classifier.train_loop();
-    }
+    std::cout << "training acc: " << svm_model.final_acc*100 << "%" << std::endl;
+    std::cout << "test acc: " << (correct / size) * 100 << "%" << std::endl;
 
     return 0;
 }
