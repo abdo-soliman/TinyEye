@@ -44,7 +44,7 @@ int main(int argc, char **argv)
     else
     {
         std::cout << "No training: " << train << std::endl;
-        TrainClassifier train_classifier("../data/faces.txt", "../data/classes_count.txt", model_check, "../data/test.txt");
+        TrainClassifier train_classifier("../data/map2.txt", "../data/classes_count2.txt", model_check, "../data/test.txt");
         train_classifier.train_loop();
     }
 
