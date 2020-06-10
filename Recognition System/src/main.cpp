@@ -53,30 +53,39 @@ std::pair<torch::Tensor, torch::Tensor> create_dataset(std::string map_filepath,
 int main(int argc, char **argv)
 {
     MobileFacenet net("../../models/mobilefacenet.pt");
-    auto train_data = create_dataset("../../data/train_map.txt", net, config.train_batch_size);
-    auto train_embeddings = train_data.first;
-    auto train_labels = train_data.second;
 
-    auto svm_model = tinyeye::svm("../../models/classes_map.txt", 128, 9);
-    svm_model.fit(train_embeddings, train_labels, true, 5);
+    auto svm_model = tinyeye::svm(128, 9);
+    svm_model.construct_map("../../models/classes_map.txt");
+    svm_model.load("../../models/svm_model.pt");
 
     MTCNN detector("../../models/mtcnn");
+
     cv::Mat img = cv::imread(argv[1]);
-    std::vector<cv::Mat> faces = detector.detect_faces(img, 0.95);
+    std::vector<Bbox> boxes = detector.detect(img);
 
+    long prediction;
     std::string name;
-    cv::Mat scaled_face;
-    for (const auto& face : faces)
+    torch::Tensor embeddings;
+    
+    cv::Mat face;
+    cv::Mat img_copy = img.clone();
+    for (const auto& box : boxes)
     {
-        cv::resize(face, scaled_face, cv::Size(config.image_width, config.image_height));
-        auto test_embeddings = net.get_embeddings(scaled_face);
+        if (box.score < 0.95)
+            continue;
 
-        auto prediction = svm_model.predict(test_embeddings);
+        face = Mat(img, cv::Rect(box.y1, box.x1, box.height, box.width));
+        cv::resize(face, face, cv::Size(config.image_width, config.image_height));
+        embeddings = net.get_embeddings(face);
+
+        prediction = svm_model.predict(embeddings);
         name = svm_model.prediction_to_class(prediction);
 
-        cv::imshow(name, scaled_face);
-        cv::waitKey(0);
+        cv::putText(img_copy, name, cv::Point(box.y1, box.x1), cv::FONT_HERSHEY_TRIPLEX, 1, (255, 255, 0), 1);
     }
+
+    cv::imshow("result", img_copy);
+    cv::waitKey(0);
 
     return 0;
 }

@@ -8,3 +8,8 @@ src/*.out
 src/test.*
 src/*.in
 models/*
+
+!models/mtcnn/*
+!mobilefacenet.pt
+!classes_map.txt
+!svm_model.pt

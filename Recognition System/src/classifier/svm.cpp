@@ -8,12 +8,12 @@
 
 namespace tinyeye
 {
-svm::svm(std::string map_filename, int in_features, int out_features, int batch_size)
+svm::svm(int in_features, int out_features, float unknown_th, int batch_size)
 {
-    construct_map(map_filename);
     BATCH_SIZE = batch_size;
+    input_features = in_features;
     output_features = out_features;
-    fully_connected = register_module("fully_connected", torch::nn::Linear(in_features, out_features));
+    unknown_threshold = unknown_th;
 }
 
 torch::Tensor svm::forward(torch::Tensor x)
@@ -23,6 +23,7 @@ torch::Tensor svm::forward(torch::Tensor x)
 
 void svm::fit(torch::Tensor dataset, torch::Tensor labels, bool log, int iterations)
 {
+    fully_connected = register_module("fully_connected", torch::nn::Linear(input_features, output_features));
     this->train();
     auto optimizer = new torch::optim::SGD(this->parameters(), torch::optim::SGDOptions(0.1));
 
@@ -78,12 +79,18 @@ long svm::predict(torch::Tensor embeddings)
 {
     this->eval();
     auto output = forward(embeddings);
-    auto prediction = output.argmax().to(torch::kLong);
-    return prediction.item<long>();
+
+    if(output.max().item<float>() < unknown_threshold)
+        return -1;
+
+    return output.argmax().to(torch::kLong).item<long>();
 }
 
 std::string svm::prediction_to_class(long prediction)
 {
+    if (prediction == -1)
+        return "unknown";
+
     return class_map[prediction];
 }
 
@@ -125,5 +132,17 @@ void svm::construct_map(std::string map_filename)
 
         class_map.insert(std::pair<long, std::string>(class_code, class_name));
     }
+}
+
+void svm::load(std::string model_path)
+{
+    torch::nn::Linear fc = torch::nn::Linear(input_features, output_features);
+    torch::load(fc, model_path);
+    fully_connected = register_module("fully_connected", fc);
+}
+
+void svm::save(std::string model_path)
+{
+    torch::save(fully_connected, torch::str(model_path));
 }
 } // namespace tinyeye

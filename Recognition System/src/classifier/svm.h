@@ -10,23 +10,30 @@ namespace tinyeye
 class svm : torch::nn::Module
 {
 public:
-    svm(std::string map_filename, int in_features=128, int out_features=3, int batch_size=32);
+    svm(int in_features=128, int out_features=3, float unknown_th=0.85, int batch_size=32);
     torch::Tensor forward(torch::Tensor x);
+
     void fit(torch::Tensor dataset, torch::Tensor labels, bool log=false, int iterations=30);
     long predict(torch::Tensor embeddings);
+
+    void construct_map(std::string map_filename);
     std::string prediction_to_class(long prediction);
+    
+    void load(std::string model_path);
+    void save(std::string model_path);
+    
     float final_acc;
 
 private:
-    void construct_map(std::string map_filename);
-
     static constexpr char DELIMITER[] = "=";
-    int BATCH_SIZE;
-    int output_features;
     std::map<long, std::string> class_map;
+
+    int BATCH_SIZE;
+    float unknown_threshold;
+    int input_features, output_features;
+
     torch::nn::Linear fully_connected{ nullptr };
 };
-
 }
 
 #endif
