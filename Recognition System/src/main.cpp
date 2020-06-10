@@ -60,6 +60,7 @@ int main(int argc, char **argv)
 
     MTCNN detector("../../models/mtcnn");
 
+    clock_t start = clock();
     cv::Mat img = cv::imread(argv[1]);
     std::vector<Bbox> boxes = detector.detect(img);
 
@@ -81,9 +82,10 @@ int main(int argc, char **argv)
         prediction = svm_model.predict(embeddings);
         name = svm_model.prediction_to_class(prediction);
 
-        cv::putText(img_copy, name, cv::Point(box.y1, box.x1), cv::FONT_HERSHEY_TRIPLEX, 1, (255, 255, 0), 1);
+        cv::putText(img_copy, name, cv::Point(box.y1, box.x1), cv::FONT_HERSHEY_TRIPLEX, 1, cv::Scalar(255, 0, 0), 1);
     }
 
+    std::cout << "time: " << ((double)clock() - start) / CLOCKS_PER_SEC << std::endl;
     cv::imshow("result", img_copy);
     cv::waitKey(0);
 
