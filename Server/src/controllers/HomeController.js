@@ -1,4 +1,5 @@
 import validate from "../requests";
+import Board from "../../models/Board";
 
 class HomeController {
   index = (req, res) => {
@@ -8,7 +9,10 @@ class HomeController {
   };
 
   about = (req, res) => {
-    return res.send("About!");
+    Board.findAll().then((boards) => {
+      // console.log(boards);
+      return res.json(boards);
+    });
   };
 }
 

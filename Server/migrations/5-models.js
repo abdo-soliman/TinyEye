@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
@@ -10,37 +10,37 @@ module.exports = {
       return queryInterface.createTable('users', { id: Sequelize.INTEGER });
     */
     await queryInterface.createTable(
-  'models',
-  {
-    id: {
-      type: Sequelize.INTEGER,
-      primaryKey: true,
-      autoIncrement: true
-    },
-    createdAt: {
-      type: Sequelize.DATE
-    },
-    updatedAt: {
-      type: Sequelize.DATE
-    },
-    mPath: Sequelize.STRING,
-    boardId: {
-        type: Sequelize.INTEGER,
-        references: {
-            model: 'boards',
-            key: 'id'
+      "models",
+      {
+        id: {
+          type: Sequelize.INTEGER,
+          primaryKey: true,
+          autoIncrement: true,
         },
-        onUpdate: 'cascade',
-        onDelete: 'cascade'
-    }
+        createdAt: {
+          type: Sequelize.DATE,
+        },
+        updatedAt: {
+          type: Sequelize.DATE,
+        },
+        mPath: Sequelize.STRING,
+        boardId: {
+          type: Sequelize.INTEGER,
+          references: {
+            model: "boards",
+            key: "id",
+          },
+          onUpdate: "cascade",
+          onDelete: "cascade",
+        },
+      },
+      {
+        engine: "InnoDB", // default: 'InnoDB'
+        charset: "utf8", // default: null
+        schema: "", // default: public, PostgreSQL only.
+      }
+    );
   },
-  {
-    engine: 'InnoDB',                     // default: 'InnoDB'
-    charset: 'utf8',                    // default: null
-    schema: ''                      // default: public, PostgreSQL only.
-  }
-)
-   },
 
   down: (queryInterface, Sequelize) => {
     /*
@@ -51,6 +51,6 @@ module.exports = {
       return queryInterface.dropTable('users');
 
     */
-    return queryInterface.dropTable('models');
-  }
+    return queryInterface.dropTable("models");
+  },
 };

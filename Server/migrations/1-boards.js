@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
@@ -9,34 +9,33 @@ module.exports = {
       Example:
       return queryInterface.createTable('users', { id: Sequelize.INTEGER });
     */
-  await queryInterface.createTable(
-  'boards',
-  {
-    id: {
-      type: Sequelize.INTEGER,
-      primaryKey: true,
-      autoIncrement: true
-    },
-    createdAt: {
-      type: Sequelize.DATE
-    },
-    updatedAt: {
-      type: Sequelize.DATE
-    },
-    UUID: {
-      type: Sequelize.UUID,
-      indicesType: 'UNIQUE',
-      allowNull: false
-    },
+    await queryInterface.createTable(
+      "boards",
+      {
+        id: {
+          type: Sequelize.INTEGER,
+          primaryKey: true,
+          autoIncrement: true,
+        },
+        createdAt: {
+          type: Sequelize.DATE,
+        },
+        updatedAt: {
+          type: Sequelize.DATE,
+        },
+        UUID: {
+          type: Sequelize.UUID,
+          indicesType: "UNIQUE",
+          allowNull: false,
+        },
+      },
+      {
+        engine: "InnoDB", // default: 'InnoDB'
+        charset: "utf8", // default: null
+        schema: "", // default: public, PostgreSQL only.
+      }
+    );
   },
-  {
-    engine: 'InnoDB',                     // default: 'InnoDB'
-    charset: 'utf8',                    // default: null
-    schema: ''                      // default: public, PostgreSQL only.
-  }
-
-)
-   },
 
   down: (queryInterface, Sequelize) => {
     /*
@@ -46,6 +45,6 @@ module.exports = {
       Example:
       return queryInterface.dropTable('users');
     */
-    return queryInterface.dropTable('boards');
-  }
+    return queryInterface.dropTable("boards");
+  },
 };

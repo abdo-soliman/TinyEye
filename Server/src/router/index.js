@@ -1,25 +1,25 @@
 import express from "express";
 const router = express.Router();
 import DynamicController from "../controllers/DynamicController";
-import { indexRequest } from "../requests/HomeRequest";
+import { indexRequest, aboutRequest } from "../requests/HomeRequest";
 
 class Route {
-  static get = (route, callback, validation = []) => {
+  static get = (route, callback, middlewares = []) => {
     const controller = callback.split("@");
     const controllerClass = new DynamicController(controller[0]);
     const method = controller[1];
-    router.get(route, validation, controllerClass[method]);
+    router.get(route, middlewares, controllerClass[method]);
   };
 
-  static post = (route, callback, validation = []) => {
+  static post = (route, callback, middlewares = []) => {
     const controller = callback.split("@");
     const controllerClass = new DynamicController(controller[0]);
     const method = controller[1];
-    router.post(route, validation, controllerClass[method]);
+    router.post(route, middlewares, controllerClass[method]);
   };
 }
 
 Route.get("/", "HomeController@index", indexRequest);
-Route.get("/about", "HomeController@about");
+Route.get("/about", "HomeController@about", aboutRequest);
 
 export default router;
