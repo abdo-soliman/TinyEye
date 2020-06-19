@@ -7,4 +7,7 @@ export const registerRequest = [
   check("board_uuid").isLength({ min: 6 }),
 ];
 
-export const loginRequest = [];
+export const loginRequest = [
+  check("email").isEmail(),
+  check("password").isLength({ min: 6 }),
+];

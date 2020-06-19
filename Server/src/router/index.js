@@ -1,7 +1,8 @@
 import express from "express";
 const router = express.Router();
 import DynamicController from "../controllers/DynamicController";
-import { indexRequest, aboutRequest } from "../requests/HomeRequest";
+import { indexRequest } from "../requests/HomeRequest";
+import { registerRequest, loginRequest } from "../requests/AuthRequest";
 
 class Route {
   static get = (route, callback, middlewares = []) => {
@@ -20,6 +21,7 @@ class Route {
 }
 
 Route.get("/", "HomeController@index", indexRequest);
-Route.get("/about", "HomeController@about", aboutRequest);
+Route.post("/register", "AuthController@register", registerRequest);
+Route.post("/login", "AuthController@login", loginRequest);
 
 export default router;
