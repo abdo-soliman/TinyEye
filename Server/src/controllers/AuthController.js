@@ -1,5 +1,4 @@
 import bcrypt from "bcrypt";
-import validate from "../requests";
 import Board from "../../models/Board";
 import User from "../../models/User";
 import jwt from "jsonwebtoken";
@@ -22,11 +21,6 @@ class AuthController {
   };
 
   register = async (req, res) => {
-    const errors = validate(req, res);
-    if (errors) {
-      return res.status(422).json({ errors: errors.array() })
-    }
-
     const { body } = req;
     const board = await this.checkBoard(body.board_uuid, res);
     if (board == null) {
@@ -59,18 +53,14 @@ class AuthController {
         .json({ errors: [{ msg: "Something went wrong!", param: "result" }] });
     }
   };
-  
+
   login = async (req, res) => {
-    const errors = validate(req, res);
-    if (errors) {
-      return res.status(422).json({ errors: errors.array() })
-    }
     const { body } = req;
     const user = await this.checkEmail(body.email, res);
     if (!user) {
       return res
-      .status(404)
-      .json({ errors: [{ msg: "User not found", param: "email" }] });
+        .status(404)
+        .json({ errors: [{ msg: "User not found", param: "email" }] });
     }
     try {
       const accessToken = jwt.sign(user.dataValues, JWT_SECRET);

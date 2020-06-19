@@ -3,7 +3,7 @@ import Board from "../../models/Board";
 
 class HomeController {
   index = (req, res) => {
-    validate(req, res);
+    // validate(req, res);
 
     return res.json({ welcome: "Hello World!" });
   };
