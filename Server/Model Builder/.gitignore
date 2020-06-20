@@ -1,14 +1,6 @@
-models/
-photos/
 .vscode/
-__pycache__/
+build/
+photos/
+data/
 
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# IPython
-profile_default/
-ipython_config.py
-
-.env
-.venv
+build.log
