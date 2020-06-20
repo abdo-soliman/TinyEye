@@ -17,11 +17,23 @@ module.exports = {
           type: Sequelize.DATE,
         },
         Name: Sequelize.STRING,
-        username: {
+        email: {
           type: Sequelize.STRING,
           indicesType: "UNIQUE",
           allowNull: false,
-        },
+          unique: true,
+          validate: {
+            isEmail: {
+              msg: "Must be a valid email address",
+            }
+          }
+    },
+ 
+        // email: {
+        //   type: Sequelize.email,
+        //   indicesType: "UNIQUE",
+        //   allowNull: false,
+        // },
         password: {
           type: Sequelize.STRING,
           allowNull: false,
