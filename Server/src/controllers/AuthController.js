@@ -63,10 +63,15 @@ class AuthController {
         .json({ errors: [{ msg: "User not found", param: "email" }] });
     }
     try {
+      const result = await bcrypt.compare(body.password, user.password);
+      if (!result) {
+        return res
+          .status(404)
+          .json({ errors: [{ msg: "User not found", param: "email" }] });
+      }
       const accessToken = jwt.sign(user.dataValues, JWT_SECRET);
       return res.json({ accessToken: accessToken, user: user });
     } catch (error) {
-      User.destroy({ where: { id: user.dataValues.id } });
       return res
         .status(500)
         .json({ errors: [{ msg: "Something went wrong!", param: "result" }] });
