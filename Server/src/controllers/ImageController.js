@@ -3,14 +3,13 @@ import validate from "../requests";
 import Images from "../../models/Image";
 
 class ImageController {
-  addModel = (req, res) => {
-  	Models.create({
-        ipath: req.body.path,
-        boardId:req.body.boardId,
-        humanId:req.body.humanId
+  async addImage (path, boardId,humanId) {
+  	await Images.create({
+        iPath: path,
+        boardId:boardId,
+        humanId:humanId
     })
-
-  return res.json({ msg :"image inserted"});
+    // make it using try to check for errors 
   };
 
   deleteImage = (req, res) => {

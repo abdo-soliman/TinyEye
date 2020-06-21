@@ -1,15 +1,27 @@
 import validate from "../requests";
 import Humans from "../../models/Human";
+import Sequelize from "sequelize";
 
 class HumanController {
-  addHuman = (req, res) => {
-    Humans.create({
-      Name: req.body.name,
-      classId: req.body.classId,
-      boardId: req.body.boardId,
+  async addHuman (name, classId,boardId) {
+    await Humans.create({
+      Name: name,
+      classId: classId,
+      boardId: boardId,
     });
+    // make it using try to handle errors 
+  };
 
-    return res.json({ msg: "human inserted" });
+  
+
+  async getHumanCounts (boardId) {
+      var count = await Humans.findAll({
+      attributes: [[Sequelize.fn('COUNT', Sequelize.col('id')), 'hCount']],
+      where: {
+        boardId : boardId,
+      },
+    });
+    return count[0].dataValues.hCount;
   };
 
   deleteHumanbyid = (req, res) => {

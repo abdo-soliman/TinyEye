@@ -1,6 +1,8 @@
 import validate from "../requests";
 import Users from "../../models/User";
-var fs = require("fs");
+import HumanController from "./HumanController";
+import ImageController from "./ImageController";
+import fs from "fs";
 
 class UserController {
   addUser = (req, res) => {
@@ -37,14 +39,56 @@ class UserController {
     return res.json({ msg: "user email updated" });
   };
 
-  createModel = (req, res) => {
-	
+  createModel = (req, res) => {};
+
+  makedirectory(name) {
+    fs.mkdir(name, { recursive: true }, function (err) {
+      if (err) {
+        console.log(err);
+      } else {
+        console.log("New directory successfully created.");
+      }
+    });
+  }
+
+  checkSpaces(name){
+    if(name.indexOf(' ') >= 0){
+      name = name.replace(" ","_");
+    }
+    return name;
+  }
+  
+  prepareData = async (req, res) => {
+    var humancontroller = new HumanController();
+    var imagecontroller = new ImageController();
+    var classId = await humancontroller.getHumanCounts(req.user.boardId);
+    const name = this.checkSpaces(req.body.name);
+    var myDirectory = "./storage/board_" +
+    req.user.boardId +
+    "/Images/" +
+    name+
+    "_" +
+    classId;
+    this.makedirectory(myDirectory);
+    // save in data base in humans indicate new class
+    await humancontroller.addHuman(req.body.name, classId, req.user.boardId);
+    var i;
+    for (i = 0; i < req.body.images.length; i++) {
+      fs.writeFile(myDirectory+
+        "/image_" +i,
+        req.body.images[i],
+        "base64",
+        function (err) {
+          console.log(err);
+        }
+      );
+    // save in database in images indicate new image
+    await imagecontroller.addImage(myDirectory+"/image_" + i,req.user.boardId,classId);
+      }
+   
   };
 
-  
-  prepareData = (req, res) => {
-	
-  };
+
   updatePassword = (req, res) => {
     Users.update(
       {

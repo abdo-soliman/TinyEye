@@ -34,4 +34,5 @@ Route.post("/updateemail","UserController@updateEmail",[AuthMiddleware]);
 
 Route.post("/createmodel","UserController@createModel",[AuthMiddleware]);
 Route.post("/modelRegister","UserController@prepareData",[AuthMiddleware]);
+// Route.post("/modelRegister","UserController@prepareData",DataRequest,[AuthMiddleware]);
 export default router;
