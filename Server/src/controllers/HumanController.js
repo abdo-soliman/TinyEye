@@ -4,12 +4,13 @@ import Sequelize from "sequelize";
 
 class HumanController {
   async addHuman (name, classId,boardId) {
-    await Humans.create({
+    var human = await Humans.create({
       Name: name,
       classId: classId,
       boardId: boardId,
     });
     // make it using try to handle errors 
+    return human.dataValues.id;
   };
 
   
@@ -34,13 +35,13 @@ class HumanController {
   };
 
 
-  getHumanbyboard = async (req, res) => {
+  async getHumanbyboard (boardId) {
     var humans = await Humans.findAll({
       where: {
-        boardId: req.body.boardId,
+        boardId: boardId,
       },
     });
-    return res.json({humans});
+    return humans;
   };
 
   deleteHumanbyname = async (req, res) => {

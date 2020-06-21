@@ -42,6 +42,16 @@ class ImageController {
   return res.json({ images });
   };
 
+  async getImagebyboardAndHuman (boardId,humanId) {
+    var images = await Images.findAll({
+      where: {
+        boardId: boardId,
+        humanId: humanId
+      }
+  })
+    return images;
+    };
+
   
 
   getImagebyhuman = async (req, res) =>{
