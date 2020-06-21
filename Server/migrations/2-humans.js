@@ -23,7 +23,7 @@ module.exports = {
         updatedAt: {
           type: Sequelize.DATE,
         },
-        Name: Sequelize.STRING,
+        name: Sequelize.STRING,
         classId: Sequelize.INTEGER,
         boardId: {
           type: Sequelize.INTEGER,

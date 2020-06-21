@@ -9,7 +9,7 @@ const Humans = db.define(
       primaryKey: true,
       autoIncrement: true,
     },
-    Name: Sequelize.STRING,
+    name: Sequelize.STRING,
     classId: Sequelize.INTEGER,
     boardId: {
       type: Sequelize.INTEGER,

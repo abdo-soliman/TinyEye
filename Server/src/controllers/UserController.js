@@ -1,10 +1,5 @@
 import validate from "../requests";
 import Users from "../../models/User";
-import HumanController from "./HumanController";
-import ImageController from "./ImageController";
-import fs from "fs";
-var humancontroller = new HumanController();
-var imagecontroller = new ImageController();
 
 class UserController {
   deleteUser = (req, res) => {
@@ -30,70 +25,7 @@ class UserController {
     return res.json({ msg: "user email updated" });
   };
 
-  async mappingToFile(Images, myDirectory, classId) {
-    for (let i = 0; i < Images.length; i++) {
-      await fs.appendFileSync(
-        myDirectory + "/trainFile",
-        Images[i].dataValues.iPath + " " + classId + "\n",
-        function (err) {
-          console.log(err);
-        }
-      );
-    }
-  }
-
-  createModel = async (req, res) => {
-    var humans = await humancontroller.getHumanbyboard(req.user.boardId);
-    var myDirectory = "./storage/board_" + req.user.boardId;
-    for (let i = 0; i < humans.length; i++) {
-      var Images = await imagecontroller.getImagebyboardAndHuman(
-        humans[i].dataValues.boardId,
-        humans[i].dataValues.id
-      );
-      this.mappingToFile(Images, myDirectory, humans[i].classId);
-    }
-  };
-
-  makedirectory = (name) => {
-    fs.mkdir(name, { recursive: true }, function (err) {
-      if (err) {
-        console.log(err);
-      } else {
-        console.log("New directory successfully created.");
-      }
-    });
-  };
-
-  prepareData = async (req, res) => {
-    var classId = await humancontroller.getHumanCounts(req.user.boardId);
-    const name = name.replace(" ", "_");
-    var myDirectory =
-      "./storage/board_" + req.user.boardId + "/Images/" + name + "_" + classId;
-    this.makedirectory(myDirectory);
-    // save in data base in humans indicate new class
-    var humanId = await humancontroller.addHuman(
-      req.body.name,
-      classId,
-      req.user.boardId
-    );
-    for (let i = 0; i < req.body.images.length; i++) {
-      fs.writeFile(
-        myDirectory + "/image_" + i,
-        req.body.images[i],
-        "base64",
-        function (err) {
-          console.log(err);
-        }
-      );
-      // save in database in images indicate new image
-      await imagecontroller.addImage(
-        myDirectory + "/image_" + i,
-        req.user.boardId,
-        humanId
-      );
-    }
-  };
-
+  
   updatePassword = (req, res) => {
     Users.update(
       {

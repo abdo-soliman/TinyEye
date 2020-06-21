@@ -1,9 +1,10 @@
 
 import validate from "../requests";
 import Images from "../../models/Image";
+import HumanController from "./HumanController";
 
 class ImageController {
-  async addImage (path, boardId,humanId) {
+    addImage = async (path, boardId,humanId) => {
   	await Images.create({
         iPath: path,
         boardId:boardId,
@@ -42,7 +43,9 @@ class ImageController {
   return res.json({ images });
   };
 
-  async getImagebyboardAndHuman (boardId,humanId) {
+    
+
+   getImagebyboardAndHuman = async (boardId,humanId) => {
     var images = await Images.findAll({
       where: {
         boardId: boardId,
