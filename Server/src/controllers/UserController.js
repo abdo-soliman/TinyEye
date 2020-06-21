@@ -7,17 +7,6 @@ var humancontroller = new HumanController();
 var imagecontroller = new ImageController();
 
 class UserController {
-  addUser = (req, res) => {
-    Users.create({
-      name: req.body.name,
-      email: req.body.email,
-      password: req.body.password,
-      boardId: req.body.boardId,
-    });
-
-    return res.json({ msg: "user inserted" });
-  };
-
   deleteUser = (req, res) => {
     Users.destroy({
       where: {
@@ -42,8 +31,7 @@ class UserController {
   };
 
   async mappingToFile(Images, myDirectory, classId) {
-    var i;
-    for (i = 0; i < Images.length; i++) {
+    for (let i = 0; i < Images.length; i++) {
       await fs.appendFileSync(
         myDirectory + "/trainFile",
         Images[i].dataValues.iPath + " " + classId + "\n",
@@ -53,21 +41,20 @@ class UserController {
       );
     }
   }
+
   createModel = async (req, res) => {
     var humans = await humancontroller.getHumanbyboard(req.user.boardId);
-    var i;
     var myDirectory = "./storage/board_" + req.user.boardId;
-    for (i = 0; i < humans.length; i++) {
+    for (let i = 0; i < humans.length; i++) {
       var Images = await imagecontroller.getImagebyboardAndHuman(
         humans[i].dataValues.boardId,
         humans[i].dataValues.id
       );
       this.mappingToFile(Images, myDirectory, humans[i].classId);
-      // humansArray[i]= humans[i].dataValues;
     }
   };
 
-  makedirectory(name) {
+  makedirectory = (name) => {
     fs.mkdir(name, { recursive: true }, function (err) {
       if (err) {
         console.log(err);
@@ -75,18 +62,11 @@ class UserController {
         console.log("New directory successfully created.");
       }
     });
-  }
-
-  checkSpaces(name) {
-    if (name.indexOf(" ") >= 0) {
-      name = name.replace(" ", "_");
-    }
-    return name;
-  }
+  };
 
   prepareData = async (req, res) => {
     var classId = await humancontroller.getHumanCounts(req.user.boardId);
-    const name = this.checkSpaces(req.body.name);
+    const name = name.replace(" ", "_");
     var myDirectory =
       "./storage/board_" + req.user.boardId + "/Images/" + name + "_" + classId;
     this.makedirectory(myDirectory);
@@ -96,8 +76,7 @@ class UserController {
       classId,
       req.user.boardId
     );
-    var i;
-    for (i = 0; i < req.body.images.length; i++) {
+    for (let i = 0; i < req.body.images.length; i++) {
       fs.writeFile(
         myDirectory + "/image_" + i,
         req.body.images[i],
