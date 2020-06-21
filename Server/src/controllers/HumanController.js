@@ -28,8 +28,8 @@ class HumanController {
   prepareData = async (req, res) => {
     const imagecontroller = new ImageController();
     var classId = await this.getHumanCounts(req.user.boardId);
-    // const name = name.replace(" ", "_");
-    const name = req.body.name;
+    const name = req.body.name.replace(" ", "_");
+    //const name = req.body.name;
     var myDirectory =
       "./storage/board_" + req.user.boardId + "/Images/" + name + "_" + classId;
     this.makedirectory(myDirectory);
