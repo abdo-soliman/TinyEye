@@ -16,7 +16,7 @@ module.exports = {
         updatedAt: {
           type: Sequelize.DATE,
         },
-        Name: Sequelize.STRING,
+        name: Sequelize.STRING,
         email: {
           type: Sequelize.STRING,
           indicesType: "UNIQUE",
@@ -25,15 +25,9 @@ module.exports = {
           validate: {
             isEmail: {
               msg: "Must be a valid email address",
-            }
-          }
-    },
- 
-        // email: {
-        //   type: Sequelize.email,
-        //   indicesType: "UNIQUE",
-        //   allowNull: false,
-        // },
+            },
+          },
+        },
         password: {
           type: Sequelize.STRING,
           allowNull: false,

@@ -16,8 +16,11 @@ const Humans = db.define(
       references: {
         model: "boards",
         key: "id",
-      }
-    }
+      },
+    },
+  },
+  {
+    timestamps: true,
   }
 );
 
