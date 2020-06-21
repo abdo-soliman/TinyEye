@@ -16,7 +16,7 @@ module.exports = {
         updatedAt: {
           type: Sequelize.DATE,
         },
-        Name: Sequelize.STRING,
+        name: Sequelize.STRING,
         email: {
           type: Sequelize.STRING,
           indicesType: "UNIQUE",

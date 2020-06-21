@@ -3,13 +3,13 @@ import Users from "../../models/User";
 import HumanController from "./HumanController";
 import ImageController from "./ImageController";
 import fs from "fs";
-import List from "collections/list";
 var humancontroller = new HumanController();
 var imagecontroller = new ImageController();
+
 class UserController {
   addUser = (req, res) => {
     Users.create({
-      Name: req.body.name,
+      name: req.body.name,
       email: req.body.email,
       password: req.body.password,
       boardId: req.body.boardId,
@@ -46,7 +46,7 @@ class UserController {
     for (i = 0; i < Images.length; i++) {
       await fs.appendFileSync(
         myDirectory + "/trainFile",
-        Images[i].dataValues.iPath + " , " + classId + "\n",
+        Images[i].dataValues.iPath + " " + classId + "\n",
         function (err) {
           console.log(err);
         }
@@ -58,13 +58,10 @@ class UserController {
     var i;
     var myDirectory = "./storage/board_" + req.user.boardId;
     for (i = 0; i < humans.length; i++) {
-      console.log(humans[i].id);
-      console.log("here");
       var Images = await imagecontroller.getImagebyboardAndHuman(
         humans[i].dataValues.boardId,
         humans[i].dataValues.id
       );
-      console.log(Images[i].dataValues);
       this.mappingToFile(Images, myDirectory, humans[i].classId);
       // humansArray[i]= humans[i].dataValues;
     }
