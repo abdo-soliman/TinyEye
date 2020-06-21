@@ -1,10 +1,10 @@
-import React, { memo } from 'react';
-import { View, StyleSheet, Text } from 'react-native';
-import { TextInput as Input } from 'react-native-paper';
-import { theme } from '../core/theme';
+import React from "react";
+import { StyleSheet, Text, KeyboardAvoidingView } from "react-native";
+import { TextInput as Input } from "react-native-paper";
+import { theme } from "../core/theme";
 
 const TextInput = ({ errorText, ...props }) => (
-  <View style={styles.container}>
+  <KeyboardAvoidingView style={styles.container}>
     <Input
       style={styles.input}
       selectionColor={theme.colors.primary}
@@ -13,12 +13,12 @@ const TextInput = ({ errorText, ...props }) => (
       {...props}
     />
     {errorText ? <Text style={styles.error}>{errorText}</Text> : null}
-  </View>
+  </KeyboardAvoidingView>
 );
 
 const styles = StyleSheet.create({
   container: {
-    width: '100%',
+    width: "100%",
     marginVertical: 12,
   },
   input: {
@@ -32,4 +32,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default memo(TextInput);
+export default TextInput;

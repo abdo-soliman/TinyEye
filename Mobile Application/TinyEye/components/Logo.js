@@ -1,8 +1,8 @@
-import React, { memo } from 'react';
-import { Image, StyleSheet } from 'react-native';
+import React from "react";
+import { Image, StyleSheet } from "react-native";
 
 const Logo = () => (
-  <Image source={require('../assets/logo_no_text.png')} style={styles.image} />
+  <Image source={require("../assets/logo_no_text.png")} style={styles.image} />
 );
 
 const styles = StyleSheet.create({
@@ -13,4 +13,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default memo(Logo);
+export default Logo;

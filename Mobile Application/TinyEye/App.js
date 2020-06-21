@@ -3,8 +3,9 @@ import { AppLoading } from "expo";
 import * as Font from "expo-font";
 import { Ionicons } from "@expo/vector-icons";
 import MainNavigator from "./navigation";
-import { Provider } from "react-redux";
 import store from "./store";
+import { Provider as PaperProvider } from "react-native-paper";
+import { Provider as StoreProvider } from "react-redux";
 
 export default class App extends React.Component {
   constructor(props) {
@@ -29,9 +30,11 @@ export default class App extends React.Component {
     }
 
     return (
-      <Provider store={store}>
-        <MainNavigator />
-      </Provider>
+      <StoreProvider store={store}>
+        <PaperProvider>
+          <MainNavigator />
+        </PaperProvider>
+      </StoreProvider>
     );
   }
 }
