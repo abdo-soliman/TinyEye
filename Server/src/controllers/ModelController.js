@@ -23,9 +23,21 @@ class ModelController {
     return res.json({ msg: "model deleted" });
   };
 
-  mappingToFile = async (images, myDirectory, classId) => {
+  mappingToFile = async (images, myDirectory, classId, deletionFile) => {
+    try {
+      if (deletionFile && fs.existsSync(myDirectory + "/trainFile")) {
+        fs.unlinkSync(myDirectory + "/trainFile");
+        fs.unlinkSync(myDirectory + "/testFile");
+      }
+    } catch (err) {
+      console.error(err);
+    }
 
-    var trainLength = Math.ceil(0.8* images.length);
+    if (deletionFile && fs.existsSync(myDirectory + "/testFile")) {
+      fs.unlinkSync(myDirectory + "/testFile");
+    }
+
+    var trainLength = Math.ceil(0.8 * images.length);
 
     for (let i = 0; i < trainLength; i++) {
       await fs.appendFileSync(
@@ -53,13 +65,15 @@ class ModelController {
     const imagecontroller = new ImageController();
     var humans = await humancontroller.getHumanbyboard(req.user.boardId);
 
-    var myDirectory = __dirname+"/../../storage/board_" + req.user.boardId;
-    humans.forEach(async human => {
+    var myDirectory = __dirname + "/../../storage/board_" + req.user.boardId;
+    var deletionFile = true; // just will be true for only the first human 
+    humans.forEach(async (human) => {
       var images = await imagecontroller.getImagebyboardAndHuman(
         human.dataValues.boardId,
         human.dataValues.id
       );
-      this.mappingToFile(images, myDirectory, human.classId);
+      this.mappingToFile(images, myDirectory, human.classId,deletionFile);
+      deletionFile = false;
     });
     return res.json({ msg: "model created successfully" });
   };
@@ -87,9 +101,6 @@ class ModelController {
     });
     return res.json({ model });
   };
-
-
-
 }
 
 export default ModelController;

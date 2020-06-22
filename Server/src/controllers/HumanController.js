@@ -59,40 +59,58 @@ class HumanController {
     return res.json({ msg: "data is prepared successfully and human added " });
   };
 
-
   removeHuman = async (req, res) => {
     //assumed that request contains user and human objects
     const imagecontroller = new ImageController();
-    await imagecontroller.deleteHumanImages(req.body.human.humanId);
-    this.deleteHumanbyid(req.body.human.humanId);
-    const myDirectory =
-      __dirname +
-      "/../../storage/board_" +
-      req.user.boardId +
-      "/Images/" +
-      req.body.human.name +
-      "_" +
-      req.body.human.classId;
-      console.log(myDirectory);
-
-    
-    const files = fs.readdirSync(myDirectory);
-    files.forEach(filename => {
-      fs.unlinkSync(myDirectory+"/"+filename) 
-    });
-    // remove its images from databse and storage
-    
-    fs.rmdir(myDirectory, function(err) {
-      if (err) {
-        throw err
-      } else {
-        console.log("Successfully removed the empty directory!")
+    try {
+      try {
+        await imagecontroller.deleteHumanImages(req.body.humanId);
+      } catch (error) {
+        console.log("Error this human has no images ");
+        console.log(error);
       }
-    })
 
-    return res.json({
-      msg: "human is deleted and its images from both database and storage",
-    });
+      var human = await this.getHumanbyid(req.body.humanId);
+      await this.deleteHumanbyid(req.body.humanId);
+      const myDirectory =
+        __dirname +
+        "/../../storage/board_" +
+        req.user.boardId +
+        "/Images/" +
+        human.name +
+        "_" +
+        human.classId;
+      try {
+        if (fs.existsSync(myDirectory)) {
+          const files = fs.readdirSync(myDirectory);
+          files.forEach((filename) => {
+            fs.unlinkSync(myDirectory + "/" + filename);
+          });
+          // remove its images from databse and storage
+
+          fs.rmdir(myDirectory, function (err) {
+            if (err) {
+              throw err;
+            } else {
+              console.log("Successfully removed the empty directory!");
+            }
+          });
+          return res.json({
+            msg:
+              "human is deleted and its images from both database and storage",
+          });
+        }
+
+      }catch (error) {
+        return res.json({
+          msg: "Error this human is doesn't exists in storage",
+        });
+    }
+  }catch (error) {
+      return res.json({
+        msg: "Error this human is doesn't exists ",
+      });
+    }
   };
 
   getHumanCounts = async (boardId) => {
@@ -105,13 +123,14 @@ class HumanController {
     return count[0].dataValues.hCount;
   };
 
-  deleteHumanbyid = (req, res) => {
-    Humans.destroy({
+  deleteHumanbyid = async (id) => {
+    var human = await Humans.destroy({
       where: {
-        id: req.body.id,
+        id: id,
       },
     });
-    return res.json({ msg: "human deleted" });
+
+    return human;
   };
 
   async getHumanbyboard(boardId) {
@@ -132,13 +151,13 @@ class HumanController {
     return res.json({ human });
   };
 
-  getHuman = async (req, res) => {
+  getHumanbyid = async (id) => {
     var human = await Humans.findAll({
       where: {
-        id: req.body.id,
+        id: id,
       },
     });
-    return res.json({ human });
+    return human[0].dataValues;
   };
 }
 export default HumanController;
