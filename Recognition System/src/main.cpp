@@ -8,86 +8,69 @@
 using namespace tinyeye::mtcnn;
 using namespace tinyeye::mobilefacenet;
 
-std::pair<torch::Tensor, torch::Tensor> create_dataset(std::string map_filepath, MobileFacenet& net, int batch_size)
+void process(MTCNN& detector, MobileFacenet& net, tinyeye::svm& classifier, cv::Mat& img)
 {
-    auto dataset = img_loader(map_filepath);
-    long size = dataset.size().value();
-
-    auto loader = torch::data::make_data_loader<torch::data::samplers::SequentialSampler>(
-        std::move(dataset.map(torch::data::transforms::Stack<>())), batch_size);
-
-    torch::Tensor labels;
-    torch::Tensor embeddings;
-    int index = 0;
-    int current_batch_size = 0;
-    for (auto& batch : *loader)
-    {
-        auto data = batch.data.to(config.device);
-        auto targets = batch.target.to(config.device).view({-1});
-        current_batch_size = targets.sizes()[0];
-
-        auto current_embeddings = net.get_embeddings(data);
-
-        if (index == 0)
-        {
-            embeddings = current_embeddings;
-            labels = targets;
-        }
-        else if (batch_size*(index+1) >= size)
-        {
-            embeddings = torch::cat({embeddings, current_embeddings}).view({size, 128}).to(torch::kFloat);
-            labels = torch::cat({labels, targets}).view({size}).to(torch::kLong);
-        }
-        else
-        {
-            embeddings = torch::cat({embeddings, current_embeddings}).view({(index+1)*current_batch_size, 128}).to(torch::kFloat);
-            labels = torch::cat({labels, targets}).view({(index+1)*current_batch_size}).to(torch::kLong);
-        }
-
-        index++;
-    }
-
-    return std::make_pair(embeddings, labels);
-}
-
-int main(int argc, char **argv)
-{
-    MobileFacenet net("../../models/mobilefacenet.pt");
-
-    auto svm_model = tinyeye::svm(128, 9);
-    svm_model.construct_map("../../models/classes_map.txt");
-    svm_model.load("../../models/svm_model.pt");
-
-    MTCNN detector("../../models/mtcnn");
-
-    clock_t start = clock();
-    cv::Mat img = cv::imread(argv[1]);
     std::vector<Bbox> boxes = detector.detect(img);
 
-    long prediction;
     std::string name;
-    torch::Tensor embeddings;
-    
+    int x1, y1, width, height;
     cv::Mat face;
-    cv::Mat img_copy = img.clone();
+    torch::Tensor embeddings;
     for (const auto& box : boxes)
     {
         if (box.score < 0.95)
             continue;
 
-        face = Mat(img, cv::Rect(box.y1, box.x1, box.height, box.width));
-        cv::resize(face, face, cv::Size(config.image_width, config.image_height));
+        x1 = std::max(0, box.x1);
+        y1 = std::max(0, box.y1);
+        width = std::min(img.cols - y1, box.y2 - box.y1 + 1);
+        height = std::min(img.rows - x1, box.x2 - box.x1 + 1);
+        face = Mat(img, cv::Rect(y1, x1, width, height));
+
         embeddings = net.get_embeddings(face);
+        name = classifier.predict_one(embeddings);
 
-        prediction = svm_model.predict(embeddings);
-        name = svm_model.prediction_to_class(prediction);
+        cv::putText(img, name, cv::Point(y1, x1), cv::FONT_HERSHEY_TRIPLEX, 1, cv::Scalar(255, 0, 0), 1);
+    }
+}
 
-        cv::putText(img_copy, name, cv::Point(box.y1, box.x1), cv::FONT_HERSHEY_TRIPLEX, 1, cv::Scalar(255, 0, 0), 1);
+int main(int argc, char **argv)
+{
+    MTCNN detector("../../models/mtcnn");
+    MobileFacenet net("../../models/mobilefacenet.pt");
+    auto classifier = tinyeye::svm(128, 5, 0.7);
+    classifier.construct_map("../../models/classes_map.txt");
+    classifier.load("../../models/svm_model.pt");
+
+    cv::VideoCapture cap;
+    std::string ip = argv[1];
+    std::string url = "http://" + ip + ":4747/video?x.mjpeg";
+    
+    cap.open(url);
+    if (!cap.isOpened())
+    {
+        std::cout << "can't read camera feed please make sure the ip is correct" << std::endl;
+        return -1;
     }
 
-    std::cout << "time: " << ((double)clock() - start) / CLOCKS_PER_SEC << std::endl;
-    cv::imshow("result", img_copy);
-    cv::waitKey(0);
+    cv::namedWindow("ip", cv::WINDOW_AUTOSIZE);
+
+    cv::Mat frame;
+    while (true)
+    {
+        if (!cap.read(frame))
+        {
+            std::cout << "frame droped!!!" << std::endl;
+            continue;
+        }
+
+        cv::rotate(frame, frame, cv::ROTATE_90_COUNTERCLOCKWISE);
+        process(detector, net, classifier, frame);
+        cv::imshow("feed", frame);
+
+        if (cv::waitKey(100) == 27)
+            break;
+    }
 
     return 0;
 }

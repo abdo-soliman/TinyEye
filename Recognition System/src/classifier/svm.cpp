@@ -86,6 +86,53 @@ long svm::predict(torch::Tensor embeddings)
     return output.argmax().to(torch::kLong).item<long>();
 }
 
+std::string svm::predict_one(torch::Tensor embeddings)
+{
+    this->eval();
+    auto output = forward(embeddings);
+
+    auto max_result = output.max(1);
+    auto max_values = std::get<0>(max_result);
+    auto max_indecies = std::get<1>(max_result);
+
+    float value = max_values.narrow(0, 0, 1).item<float>();
+    long index = max_indecies.narrow(0, 0, 1).item<long>();
+
+    if (value < unknown_threshold)
+        return "unknown";
+
+    return class_map[index];
+}
+
+std::vector<std::string> svm::predict_many(torch::Tensor embeddings)
+{
+    this->eval();
+    auto output = forward(embeddings);
+
+    auto max_result = output.max(1);
+    auto max_values = std::get<0>(max_result);
+    auto max_indecies = std::get<1>(max_result);
+
+    long index;
+    float value;
+    std::vector<std::string> names;
+    for (size_t i = 0; i < max_indecies.sizes()[0]; i++)
+    {
+        value = max_values.narrow(0, i, 1).item<float>();
+        index = max_indecies.narrow(0, i, 1).item<long>();
+
+        if (value < unknown_threshold)
+        {
+            names.push_back("unknown");
+            continue;
+        }
+
+        names.push_back(class_map[index]);
+    }
+
+    return names;
+}
+
 std::string svm::prediction_to_class(long prediction)
 {
     if (prediction == -1)

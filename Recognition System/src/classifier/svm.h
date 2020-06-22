@@ -15,6 +15,8 @@ public:
 
     void fit(torch::Tensor dataset, torch::Tensor labels, bool log=false, int iterations=30);
     long predict(torch::Tensor embeddings);
+    std::string predict_one(torch::Tensor embeddings);
+    std::vector<std::string> predict_many(torch::Tensor embeddings);
 
     void construct_map(std::string map_filename);
     std::string prediction_to_class(long prediction);
