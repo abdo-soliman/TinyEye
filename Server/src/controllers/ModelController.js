@@ -25,7 +25,7 @@ class ModelController {
 
   mappingToFile = async (images, myDirectory, classId) => {
 
-    var trainLength = Math.floor(0.8* images.length);
+    var trainLength = Math.ceil(0.8* images.length);
 
     for (let i = 0; i < trainLength; i++) {
       await fs.appendFileSync(
@@ -53,7 +53,7 @@ class ModelController {
     const imagecontroller = new ImageController();
     var humans = await humancontroller.getHumanbyboard(req.user.boardId);
 
-    var myDirectory = "./storage/board_" + req.user.boardId;
+    var myDirectory = __dirname+"/../../storage/board_" + req.user.boardId;
     humans.forEach(async human => {
       var images = await imagecontroller.getImagebyboardAndHuman(
         human.dataValues.boardId,
@@ -61,6 +61,7 @@ class ModelController {
       );
       this.mappingToFile(images, myDirectory, human.classId);
     });
+    return res.json({ msg: "model created successfully" });
   };
 
   updateModel = (req, res) => {
@@ -86,6 +87,9 @@ class ModelController {
     });
     return res.json({ model });
   };
+
+
+
 }
 
 export default ModelController;

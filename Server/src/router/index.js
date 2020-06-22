@@ -32,7 +32,10 @@ Route.post("/updatepassword","UserController@updatePassword",[AuthMiddleware]);
 Route.post("/updateemail","UserController@updateEmail",[AuthMiddleware]);
 
 
+
 Route.post("/createmodel","ModelController@createModel",[AuthMiddleware]);
 Route.post("/modelRegister","HumanController@prepareData",[AuthMiddleware]);
+Route.post("/removehuman","HumanController@removeHuman",[AuthMiddleware]);
+
 // Route.post("/modelRegister","UserController@prepareData",DataRequest,[AuthMiddleware]);
 export default router;

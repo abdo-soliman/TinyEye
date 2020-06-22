@@ -22,6 +22,14 @@ class ImageController {
   return res.json({ msg :"image deleted" });
   };
 
+  deleteHumanImages = async (humanId) =>{
+    await Images.destroy({
+      where: {
+        humanId: humanId
+      }
+  })
+  };
+
   updateImage = (req, res) => {
   	Images.update({
 	  ipath: req.body.path,
