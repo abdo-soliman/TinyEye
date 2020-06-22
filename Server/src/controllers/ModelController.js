@@ -66,13 +66,14 @@ class ModelController {
     var humans = await humancontroller.getHumanbyboard(req.user.boardId);
 
     var myDirectory = __dirname + "/../../storage/board_" + req.user.boardId;
-    var deletionFile = true; // just will be true for only the first human 
+    myDirectory = myDirectory.replace(" ", "''");
+    var deletionFile = true; // just will be true for only the first human
     humans.forEach(async (human) => {
       var images = await imagecontroller.getImagebyboardAndHuman(
         human.dataValues.boardId,
         human.dataValues.id
       );
-      this.mappingToFile(images, myDirectory, human.classId,deletionFile);
+      this.mappingToFile(images, myDirectory, human.classId, deletionFile);
       deletionFile = false;
     });
     return res.json({ msg: "model created successfully" });

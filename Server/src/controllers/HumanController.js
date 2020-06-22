@@ -37,6 +37,7 @@ class HumanController {
       name +
       "_" +
       classId;
+    myDirectory = myDirectory.replace(" ", "''");
     this.makedirectory(myDirectory);
     // save in data base in humans indicate new class
     var humanId = await this.addHuman(req.body.name, classId, req.user.boardId);
@@ -100,13 +101,12 @@ class HumanController {
               "human is deleted and its images from both database and storage",
           });
         }
-
-      }catch (error) {
+      } catch (error) {
         return res.json({
           msg: "Error this human is doesn't exists in storage",
         });
-    }
-  }catch (error) {
+      }
+    } catch (error) {
       return res.json({
         msg: "Error this human is doesn't exists ",
       });
