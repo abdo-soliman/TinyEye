@@ -11,9 +11,12 @@ import {
   emailValidator,
   passwordValidator,
   nameValidator,
+  saveToken,
 } from "../../core/utils";
 import Link from "../../components/Link";
 import { connect } from "react-redux";
+import Axios from "axios";
+import apiRoutes from "../../core/apiRoutes";
 
 class RegisterScreen extends Component {
   constructor(props) {
@@ -45,7 +48,6 @@ class RegisterScreen extends Component {
   };
 
   _onSignUpPressed = () => {
-    const { navigation } = this.props;
     const { name, email, password, board_uuid } = this.state;
     const nameError = nameValidator(name.value);
     const boardError = nameValidator(board_uuid.value);
@@ -62,7 +64,29 @@ class RegisterScreen extends Component {
       return;
     }
 
-    navigation.navigate("Login");
+    Axios.post(apiRoutes.auth.register, {
+      name: name.value,
+      email: email.value,
+      board_uuid: board_uuid.value,
+      password: password.value,
+    })
+      .then(async (response) => {
+        const { data } = response;
+        const accessToken = data.accessToken;
+        await saveToken(accessToken);
+        this.props.setLogin(data.user);
+      })
+      .catch((error) => {
+        const { data } = error.response;
+
+        if (data && data.errors) {
+          data.errors.forEach((error) => {
+            this.setState({
+              [error.param]: { error: error.msg },
+            });
+          });
+        }
+      });
   };
 
   render() {
@@ -150,10 +174,10 @@ const styles = StyleSheet.create({
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    setLogin: () => {
+    setLogin: (user) => {
       dispatch({
         type: "SET_USER_LOGIN",
-        payload: null,
+        payload: user,
       });
     },
   };

@@ -1,12 +1,13 @@
 import React, { Component } from "react";
 import { StyleSheet } from "react-native";
-import { Container, Text, Button, View } from "native-base";
+import { Text, Button, View } from "native-base";
 import { connect } from "react-redux";
 import Background from "../components/Background";
-import { theme } from "../core/theme";
+import { removeToken } from "../core/utils";
 
 export class UsersScreen extends Component {
-  logout = () => {
+  logout = async () => {
+    await removeToken();
     this.props.setLogout();
   };
   render() {
@@ -14,18 +15,16 @@ export class UsersScreen extends Component {
     return (
       <Background>
         <View style={{ marginTop: 120, alignItems: "center" }}>
-        <Text>Users</Text>
-        <Button onPress={this.logout} danger>
-          <Text>Logout!</Text>
-        </Button>
+          <Text>Users</Text>
+          <Button onPress={this.logout} danger>
+            <Text>Logout!</Text>
+          </Button>
         </View>
       </Background>
     );
   }
 }
-const styles = StyleSheet.create({
-  
-});
+const styles = StyleSheet.create({});
 
 const mapDispatchToProps = (dispatch) => {
   return {

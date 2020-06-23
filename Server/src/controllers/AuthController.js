@@ -77,6 +77,10 @@ class AuthController {
         .json({ errors: [{ msg: "Something went wrong!", param: "result" }] });
     }
   };
+
+  me = async (req, res) => {
+    return res.json(req.user);
+  };
 }
 
 export default AuthController;

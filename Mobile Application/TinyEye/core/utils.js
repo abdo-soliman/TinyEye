@@ -1,4 +1,5 @@
 import Axios from "axios";
+import { AsyncStorage } from "react-native";
 
 export const emailValidator = (email) => {
   const re = /\S+@\S+\.\S+/;
@@ -23,4 +24,12 @@ export const nameValidator = (name) => {
 
 export const axiosAuth = (token) => {
   Axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+};
+
+export const saveToken = async (token) => {
+  await AsyncStorage.setItem("token", token);
+};
+
+export const removeToken = async () => {
+  await AsyncStorage.removeItem("token");
 };

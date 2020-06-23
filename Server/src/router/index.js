@@ -16,6 +16,7 @@ import {
 Route.get("/", "HomeController@index", indexRequest);
 Route.post("/register", "AuthController@register", registerRequest);
 Route.post("/login", "AuthController@login", loginRequest);
+Route.get("/me", "AuthController@me", [AuthMiddleware]);
 // User Routes
 Route.get("/get/user", "UserController@getUser", getUserRequest);
 Route.get("/delete/user", "UserController@deleteUser", deleteUserRequest);
