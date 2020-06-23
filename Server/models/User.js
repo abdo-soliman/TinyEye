@@ -1,10 +1,9 @@
 import db from "./db";
 import Sequelize from "sequelize";
 
-const Users = db.define(
+const User = db.define(
   "user",
   {
-    
     name: Sequelize.STRING,
     email: {
       type: Sequelize.STRING,
@@ -21,4 +20,4 @@ const Users = db.define(
   }
 );
 
-export default Users;
+export default User;

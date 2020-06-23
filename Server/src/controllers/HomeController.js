@@ -1,4 +1,3 @@
-import validate from "../requests";
 import Board from "../../models/Board";
 
 class HomeController {

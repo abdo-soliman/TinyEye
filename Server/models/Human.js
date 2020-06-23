@@ -10,7 +10,7 @@ const Humans = db.define(
       autoIncrement: true,
     },
     name: Sequelize.STRING,
-    classId: Sequelize.INTEGER,
+    dirPath: Sequelize.STRING,
     boardId: {
       type: Sequelize.INTEGER,
       references: {

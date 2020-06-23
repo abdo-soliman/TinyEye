@@ -24,7 +24,7 @@ module.exports = {
           type: Sequelize.DATE,
         },
         name: Sequelize.STRING,
-        classId: Sequelize.INTEGER,
+        dirPath: Sequelize.STRING,
         boardId: {
           type: Sequelize.INTEGER,
           references: {
