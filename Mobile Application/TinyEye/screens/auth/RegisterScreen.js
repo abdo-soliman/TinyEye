@@ -82,7 +82,7 @@ class RegisterScreen extends Component {
         if (data && data.errors) {
           data.errors.forEach((error) => {
             this.setState({
-              [error.param]: { error: error.msg },
+              [error.param]: { ...this.state[error.param], error: error.msg },
             });
           });
         }

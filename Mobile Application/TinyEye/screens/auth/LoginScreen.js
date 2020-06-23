@@ -8,8 +8,10 @@ import Button from "../../components/Button";
 import TextInput from "../../components/TextInput";
 import BackButton from "../../components/BackButton";
 import { theme } from "../../core/theme";
-import { emailValidator, passwordValidator } from "../../core/utils";
+import { emailValidator, passwordValidator, saveToken } from "../../core/utils";
 import Link from "../../components/Link";
+import Axios from "axios";
+import apiRoutes from "../../core/apiRoutes";
 
 class LoginScreen extends Component {
   constructor(props) {
@@ -38,7 +40,30 @@ class LoginScreen extends Component {
       });
       return;
     }
-    this.props.setLogin();
+
+    Axios.post(apiRoutes.auth.login, {
+      email: this.state.email.value,
+      password: this.state.password.value,
+    })
+      .then(async (response) => {
+        const { data } = response;
+        const accessToken = data.accessToken;
+        await saveToken(accessToken);
+        this.props.setLogin(data.user);
+      })
+      .catch((error) => {
+        if (error && error.response) {
+          const { data } = error.response;
+
+          if (data && data.errors) {
+            data.errors.forEach((error) => {
+              this.setState({
+                [error.param]: { ...this.state[error.param], error: error.msg },
+              });
+            });
+          }
+        }
+      });
   };
 
   handleInputChange = (state) => (value) => {
@@ -105,10 +130,10 @@ const styles = StyleSheet.create({
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    setLogin: () => {
+    setLogin: (user) => {
       dispatch({
         type: "SET_USER_LOGIN",
-        payload: null,
+        payload: user,
       });
     },
   };
