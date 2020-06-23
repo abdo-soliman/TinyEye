@@ -24,7 +24,6 @@ class ModelController {
     return res.json({ msg: "model deleted" });
   };
 
-
   makedirectory = (name) => {
     fs.mkdir(name, { recursive: true }, function (err) {
       if (err) {
@@ -33,48 +32,35 @@ class ModelController {
         console.log("New directory successfully created.");
       }
     });
-  }; 
+  };
 
   trainModel = async (myDirectory) => {
-    if (! fs.existsSync(myDirectory + "/models") ){
+    if (!fs.existsSync(myDirectory + "/models")) {
       this.makedirectory(myDirectory + "/models");
     }
 
-    if (! fs.existsSync(myDirectory + "/logs") ){
+    if (!fs.existsSync(myDirectory + "/logs")) {
       this.makedirectory(myDirectory + "/logs");
     }
     try {
-      var executeStatement =
-      "tinyModelBuilder --train-map-path "+ myDirectory + "/trainFile" +
-      " --test-map-path " + myDirectory +"/testFile" + " --output-model-path " + myDirectory + "/models/model.pt" +" --json-log-path " + myDirectory + "/logs/log.json" ;
-    console.log(executeStatement);
-      exec.exec(executeStatement, function (error, stdout, stderr) {
-      console.log("stdout: " + stdout);
-      console.log("stderr: " + stderr);
-      if (error !== null) {
-        console.log("exec error: " + error);
-      }
-    });
-      
+      const trainFile = `${myDirectory}/trainFile`;
+      const testFile = `${myDirectory}/testFile`;
+      const modelFile = `${myDirectory}/models/model.pt`;
+      const logFile = `${myDirectory}/logs/log.json`;
+      const executeStatement = `tinyModelBuilder --train-map-path ${trainFile} --test-map-path ${testFile} --output-model-path ${modelFile} --json-log-path ${logFile}`;
+      exec.exec(executeStatement, (error, stdout, stderr) => {
+        console.log("stdout: " + stdout);
+        console.log("stderr: " + stderr);
+        if (error !== null) {
+          console.log("exec error: " + error);
+        }
+      });
     } catch (error) {
       console.log("exec error: " + error);
     }
-    
   };
 
-  mappingToFile = async (images, myDirectory, classId, deletionFile) => {
-    try {
-      if (deletionFile && fs.existsSync(myDirectory + "/trainFile")) {
-        fs.unlinkSync(myDirectory + "/trainFile");
-      }
-    } catch (err) {
-      console.error(err);
-    }
-
-    if (deletionFile && fs.existsSync(myDirectory + "/testFile")) {
-      fs.unlinkSync(myDirectory + "/testFile");
-    }
-
+  mappingToFile = async (images, myDirectory, classId) => {
     var trainLength = Math.ceil(0.8 * images.length);
 
     for (let i = 0; i < trainLength; i++) {
@@ -98,21 +84,24 @@ class ModelController {
     }
   };
 
+  deleteFile = (fileName) => {
+    fs.existsSync(fileName) && fs.unlinkSync(fileName);
+  };
+
   createModel = async (req, res) => {
     const humancontroller = new HumanController();
     const imagecontroller = new ImageController();
     var humans = await humancontroller.getHumanbyboard(req.user.boardId);
-
-    var myDirectory = __dirname + "/../../storage/board_" + req.user.boardId;
+    var myDirectory = `${__dirname}/../../storage/board_${req.user.boardId}`;
     myDirectory = myDirectory.replace(" ", "''");
-    var deletionFile = true; // just will be true for only the first human
-    humans.forEach(async (human) => {
+    this.deleteFile(`${myDirectory}/trainFile`);
+    this.deleteFile(`${myDirectory}/testFile`);
+    humans.forEach(async (human, index) => {
       var images = await imagecontroller.getImagebyboardAndHuman(
         human.dataValues.boardId,
         human.dataValues.id
       );
-      this.mappingToFile(images, myDirectory, human.classId, deletionFile);
-      deletionFile = false;
+      this.mappingToFile(images, myDirectory, index);
     });
     this.trainModel(myDirectory);
     return res.json({ msg: "model created successfully" });

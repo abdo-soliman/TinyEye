@@ -1,9 +1,8 @@
-import validate from "../requests";
-import Users from "../../models/User";
+import User from "../../models/User";
 
 class UserController {
-  deleteUser = (req, res) => {
-    Users.destroy({
+  deleteUser = async (req, res) => {
+    await User.destroy({
       where: {
         id: req.body.id,
       },
@@ -11,42 +10,62 @@ class UserController {
     return res.json({ msg: "user deleted" });
   };
 
-  updateEmail = (req, res) => {
-    Users.update(
-      {
-        email: req.body.email,
-      },
-      {
-        where: {
-          id: req.body.id,
+  updateEmail = async (req, res) => {
+    const user = await this.getUserByID(req.body.id);
+    if (user) {
+      const user = await User.update(
+        {
+          email: req.body.email,
         },
-      }
-    );
-    return res.json({ msg: "user email updated" });
+        {
+          where: {
+            id: req.body.id,
+          },
+        }
+      );
+      return res.json({ msg: "user email updated", user: user.dataValues });
+    }
+    return res.status(404).json({ msg: "User not found!" });
   };
 
-  
-  updatePassword = (req, res) => {
-    Users.update(
-      {
-        password: req.body.password,
-      },
-      {
-        where: {
-          id: req.body.id,
-        },
+  updatePassword = async (req, res) => {
+    if (req.body.password === req.body.passwordConfirmation) {
+      const user = await this.getUserByID(req.body.id);
+      if (user) {
+        await User.update(
+          {
+            password: req.body.password,
+          },
+          {
+            where: {
+              id: req.body.id,
+            },
+          }
+        );
+        return res.json({ msg: "user password updated" });
       }
-    );
-    return res.json({ msg: "user password updated" });
+      return res.status(404).json({ msg: "User not found!" });
+    }
+    return res
+      .status(402)
+      .json({ msg: "Wrong password confirmation", param: "password" });
+  };
+
+  getUserByID = async (id) => {
+    const user = await User.findOne({
+      where: {
+        id: id,
+      },
+    });
+    return user;
   };
 
   getUser = async (req, res) => {
-    var user = await Users.findAll({
-      where: {
-        id: req.body.id,
-      },
-    });
-    return res.json({ user });
+    const user = await this.getUserByID(req.body.id);
+    if (user) {
+      return res.json(user.dataValues);
+    }
+    return res.status(404).json({ msg: "User not found!" });
   };
 }
 

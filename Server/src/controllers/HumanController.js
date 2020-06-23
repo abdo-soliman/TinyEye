@@ -4,14 +4,14 @@ import Sequelize from "sequelize";
 import ImageController from "./ImageController";
 import fs from "fs";
 class HumanController {
-  async addHuman(name, classId, boardId) {
-    var human = await Humans.create({
+  async addHuman(name, myDirectory, boardId) {
+    const human = await Humans.create({
       name: name,
-      classId: classId,
+      dirPath: myDirectory,
       boardId: boardId,
     });
     // make it using try to handle errors
-    return human.dataValues.id;
+    return human;
   }
 
   makedirectory = (name) => {
@@ -24,38 +24,35 @@ class HumanController {
     });
   };
 
- 
   prepareData = async (req, res) => {
     const imagecontroller = new ImageController();
-    var classId = await this.getHumanCounts(req.user.boardId);
     const name = req.body.name.replace(" ", "_");
-    //const name = req.body.name;
-    const myDirectory =
-      __dirname +
-      "/../../storage/board_" +
-      req.user.boardId +
-      "/Images/" +
-      name +
-      "_" +
-      classId;
+    const now = Date.now();
+    let myDirectory = `${__dirname}/../../storage/board_${req.user.boardId}/Images/${name}_${now}`;
+    // // WHY??????????????????????????????
     myDirectory = myDirectory.replace(" ", "''");
+    // // save in data base in humans indicate new class
+    var human = await this.addHuman(
+      req.body.name,
+      myDirectory,
+      req.user.boardId
+    );
     this.makedirectory(myDirectory);
-    // save in data base in humans indicate new class
-    var humanId = await this.addHuman(req.body.name, classId, req.user.boardId);
     for (let i = 0; i < req.body.images.length; i++) {
-      fs.writeFile(
-        myDirectory + "/image_" + i,
-        req.body.images[i],
-        "base64",
-        function (err) {
-          console.log(err);
+      const imagePath = `${myDirectory}/image_${i}`;
+      fs.writeFile(imagePath, req.body.images[i], "base64", async (err) => {
+        console.log(err);
+        if (err) {
+          await this.deleteHumanbyid(human.dataValues.id);
+          fs.rmdir(myDirectory, { recursive: true }, () => {});
+          return res.status(500).json("Failed to add the human");
         }
-      );
+      });
       // save in database in images indicate new image
       await imagecontroller.addImage(
-        myDirectory + "/image_" + i,
+        imagePath,
         req.user.boardId,
-        humanId
+        human.dataValues.id
       );
     }
     return res.json({ msg: "data is prepared successfully and human added " });
@@ -63,75 +60,29 @@ class HumanController {
 
   removeHuman = async (req, res) => {
     //assumed that request contains user and human objects
-    const imagecontroller = new ImageController();
-    try {
-      try {
-        await imagecontroller.deleteHumanImages(req.body.humanId);
-      } catch (error) {
-        console.log("Error this human has no images ");
-        console.log(error);
-      }
-
-      var human = await this.getHumanbyid(req.body.humanId);
+    const human = await this.getHumanbyid(req.body.humanId);
+    console.log("human", human);
+    if (human) {
       await this.deleteHumanbyid(req.body.humanId);
-      const myDirectory =
-        __dirname +
-        "/../../storage/board_" +
-        req.user.boardId +
-        "/Images/" +
-        human.name +
-        "_" +
-        human.classId;
-      try {
-        if (fs.existsSync(myDirectory)) {
-          const files = fs.readdirSync(myDirectory);
-          files.forEach((filename) => {
-            fs.unlinkSync(myDirectory + "/" + filename);
-          });
-          // remove its images from databse and storage
-
-          fs.rmdir(myDirectory, function (err) {
-            if (err) {
-              throw err;
-            } else {
-              console.log("Successfully removed the empty directory!");
-            }
-          });
-          return res.json({
-            msg:
-              "human is deleted and its images from both database and storage",
-          });
-        }
-      } catch (error) {
+      const myDirectory = human.dataValues.dirPath;
+      if (fs.existsSync(myDirectory)) {
+        fs.rmdir(myDirectory, { recursive: true }, () => {});
         return res.json({
-          msg: "Error this human is doesn't exists in storage",
+          msg: "human is deleted and its images from both database and storage",
         });
       }
-    } catch (error) {
-      return res.json({
-        msg: "Error this human is doesn't exists ",
-      });
     }
-  };
-
-  getHumanCounts = async (boardId) => {
-    var count = await Humans.findAll({
-      attributes: [[Sequelize.fn("COUNT", Sequelize.col("id")), "hCount"]],
-      where: {
-        boardId: boardId,
-      },
+    return res.status(404).json({
+      msg: "Error this human is doesn't exists ",
     });
-    return count[0].dataValues.hCount;
   };
 
   deleteHumanbyid = async (id) => {
-    var human = await Humans.destroy({
+    await Humans.destroy({
       where: {
         id: id,
       },
     });
-
-    return human;
   };
 
   async getHumanbyboard(boardId) {
@@ -153,12 +104,12 @@ class HumanController {
   };
 
   getHumanbyid = async (id) => {
-    var human = await Humans.findAll({
+    const human = await Humans.findOne({
       where: {
         id: id,
       },
     });
-    return human[0].dataValues;
+    return human;
   };
 }
 export default HumanController;
