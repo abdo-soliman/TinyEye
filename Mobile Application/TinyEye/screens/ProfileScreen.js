@@ -5,7 +5,7 @@ import { connect } from "react-redux";
 import Background from "../components/Background";
 import { removeToken } from "../core/utils";
 
-export class UsersScreen extends Component {
+export class ProfileScreen extends Component {
   logout = async () => {
     await removeToken();
     this.props.setLogout();
@@ -37,4 +37,4 @@ const mapDispatchToProps = (dispatch) => {
   };
 };
 
-export default connect(null, mapDispatchToProps)(UsersScreen);
+export default connect(null, mapDispatchToProps)(ProfileScreen);
