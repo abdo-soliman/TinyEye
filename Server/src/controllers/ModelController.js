@@ -5,13 +5,12 @@ import fs from "fs";
 import exec from "child_process";
 
 class ModelController {
-  addModel = (req, res) => {
-    Models.create({
-      mpath: req.body.path,
-      boardId: req.body.boardid,
+  addModel = async (path,boardId) => {
+    await Models.create({
+      mpath: path,
+      boardId: boardId,
     });
 
-    return res.json({ msg: "model inserted" });
   };
 
   deleteModel = (req, res) => {
@@ -24,7 +23,6 @@ class ModelController {
     return res.json({ msg: "model deleted" });
   };
 
-
   makedirectory = (name) => {
     fs.mkdir(name, { recursive: true }, function (err) {
       if (err) {
@@ -33,33 +31,45 @@ class ModelController {
         console.log("New directory successfully created.");
       }
     });
-  }; 
+  };
 
   trainModel = async (myDirectory) => {
-    if (! fs.existsSync(myDirectory + "/models") ){
+    if (!fs.existsSync(myDirectory + "/models")) {
       this.makedirectory(myDirectory + "/models");
     }
 
-    if (! fs.existsSync(myDirectory + "/logs") ){
+    if (!fs.existsSync(myDirectory + "/logs")) {
       this.makedirectory(myDirectory + "/logs");
     }
     try {
       var executeStatement =
-      "tinyModelBuilder --train-map-path "+ myDirectory + "/trainFile" +
-      " --test-map-path " + myDirectory +"/testFile" + " --output-model-path " + myDirectory + "/models/model.pt" +" --json-log-path " + myDirectory + "/logs/log.json" ;
-    console.log(executeStatement);
+        "/home/reem/tinyeye-server/bin/tinyeye-server_module --train-map-path /home/reem/Documents/GraduationProject/TinyEye/Server/src/controllers/../../storage/board_1/trainFile --test-map-path /home/reem/Documents/GraduationProject/TinyEye/Server/src/controllers/../../storage/board_1/testFile --output-model-path /home/reem/Documents/GraduationProject/TinyEye/Server/src/controllers/../../storage/board_1/models/model.pt --json-log-path /home/reem/Documents/GraduationProject/TinyEye/Server/src/controllers/../../storage/board_1/logs/log.json";
+      // var executeStatement =
+      // "/home/reem/tinyeye-server/bin/tinyeye-server_module --train-map-path "+ myDirectory + "/trainFile" +
+      // " --test-map-path " + myDirectory +"/testFile" + " --output-model-path " + myDirectory + "/models/model.pt" +" --json-log-path " + myDirectory + "/logs/log.json" ;
+      console.log(executeStatement);
       exec.exec(executeStatement, function (error, stdout, stderr) {
-      console.log("stdout: " + stdout);
-      console.log("stderr: " + stderr);
-      if (error !== null) {
-        console.log("exec error: " + error);
-      }
-    });
-      
+        console.log("stdout: " + stdout);
+        console.log("stderr: " + stderr);
+        if (error !== null) {
+          console.log("exec error: " + error);
+        }
+      });
     } catch (error) {
       console.log("exec error: " + error);
     }
-    
+    let data = fs.readFileSync(myDirectory + "/logs/log.json");
+    let errors = JSON.parse(data).errors;
+    if (errors.length != 0) {
+      console.log("error exists while training model");
+      errors.forEach((error) => {
+        console.log(error.code);
+      });
+      return false;
+    }
+    else {
+      return true;
+    }
   };
 
   mappingToFile = async (images, myDirectory, classId, deletionFile) => {
@@ -98,6 +108,15 @@ class ModelController {
     }
   };
 
+  saveModel = async (myDirectory,boardId) => {
+    if (this.getModelbyBoard(boardId)){
+      await this.updateModel(myDirectory,boardId);
+    }
+    else{
+      await this.addModel(myDirectory,boardId);
+    }
+
+  }
   createModel = async (req, res) => {
     const humancontroller = new HumanController();
     const imagecontroller = new ImageController();
@@ -114,32 +133,57 @@ class ModelController {
       this.mappingToFile(images, myDirectory, human.classId, deletionFile);
       deletionFile = false;
     });
-    this.trainModel(myDirectory);
-    return res.json({ msg: "model created successfully" });
+    if (this.trainModel(myDirectory)){
+      this.saveModel(myDirectory);
+      return res.json({ msg: "model created successfully" });
+      // TODO Call function to send model from myDirectory+"/models/model.pt" to rassb.
+    }
+    else {
+      return res.json({ msg: "Error exists during model creation" });
+    }
+    
   };
 
-  updateModel = (req, res) => {
-    Models.update(
+
+  updateModel = async (path,boardId) => {
+    await Models.update(
       {
-        mpath: req.body.path,
-        boardId: req.body.boardid,
+        mpath: path,
+        boardId: boardId,
       },
       {
         where: {
-          id: req.body.id,
+          boardId: boardId,
         },
       }
     );
-    return res.json({ msg: "model updated" });
   };
 
-  getModel = async (req, res) => {
+  getModelbyBoard = async (boardId) => {
     var model = await Models.findAll({
       where: {
-        id: req.body.id,
+        boardId: boardId,
       },
     });
-    return res.json({ model });
+    return model[0].dataValues;
+  };
+
+  getModelbyBoard = async (boardId) => {
+    var model = await Models.findAll({
+      where: {
+        boardId: boardId,
+      },
+    });
+    if (Object.keys(model).length === 0){
+      return false;
+
+    }
+    else
+    {
+      return true;
+    }
+    
+    
   };
 }
 
