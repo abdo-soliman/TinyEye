@@ -24,6 +24,7 @@ class HumanController {
     });
   };
 
+ 
   prepareData = async (req, res) => {
     const imagecontroller = new ImageController();
     var classId = await this.getHumanCounts(req.user.boardId);

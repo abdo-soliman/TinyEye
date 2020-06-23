@@ -1,8 +1,9 @@
-import validate from "../requests";
 import Models from "../../models/Model";
 import ImageController from "./ImageController";
 import HumanController from "./HumanController";
 import fs from "fs";
+import exec from "child_process";
+
 class ModelController {
   addModel = (req, res) => {
     Models.create({
@@ -23,11 +24,48 @@ class ModelController {
     return res.json({ msg: "model deleted" });
   };
 
+
+  makedirectory = (name) => {
+    fs.mkdir(name, { recursive: true }, function (err) {
+      if (err) {
+        console.log(err);
+      } else {
+        console.log("New directory successfully created.");
+      }
+    });
+  }; 
+
+  trainModel = async (myDirectory) => {
+    if (! fs.existsSync(myDirectory + "/models") ){
+      this.makedirectory(myDirectory + "/models");
+    }
+
+    if (! fs.existsSync(myDirectory + "/logs") ){
+      this.makedirectory(myDirectory + "/logs");
+    }
+    try {
+      var executeStatement =
+      "tinyModelBuilder --train-map-path "+ myDirectory + "/trainFile" +
+      " --test-map-path " + myDirectory +"/testFile" + " --output-model-path " + myDirectory + "/models/model.pt" +" --json-log-path " + myDirectory + "/logs/log.json" ;
+    console.log(executeStatement);
+      exec.exec(executeStatement, function (error, stdout, stderr) {
+      console.log("stdout: " + stdout);
+      console.log("stderr: " + stderr);
+      if (error !== null) {
+        console.log("exec error: " + error);
+      }
+    });
+      
+    } catch (error) {
+      console.log("exec error: " + error);
+    }
+    
+  };
+
   mappingToFile = async (images, myDirectory, classId, deletionFile) => {
     try {
       if (deletionFile && fs.existsSync(myDirectory + "/trainFile")) {
         fs.unlinkSync(myDirectory + "/trainFile");
-        fs.unlinkSync(myDirectory + "/testFile");
       }
     } catch (err) {
       console.error(err);
@@ -76,6 +114,7 @@ class ModelController {
       this.mappingToFile(images, myDirectory, human.classId, deletionFile);
       deletionFile = false;
     });
+    this.trainModel(myDirectory);
     return res.json({ msg: "model created successfully" });
   };
 
