@@ -13,6 +13,7 @@ import {
   nameValidator,
 } from "../../core/utils";
 import Link from "../../components/Link";
+import { connect } from "react-redux";
 
 class RegisterScreen extends Component {
   constructor(props) {
@@ -147,4 +148,15 @@ const styles = StyleSheet.create({
   },
 });
 
-export default RegisterScreen;
+const mapDispatchToProps = (dispatch) => {
+  return {
+    setLogin: () => {
+      dispatch({
+        type: "SET_USER_LOGIN",
+        payload: null,
+      });
+    },
+  };
+};
+
+export default connect(null, mapDispatchToProps)(RegisterScreen);
