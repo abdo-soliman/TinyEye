@@ -19,7 +19,7 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   container: {
-    padding: 20,
+    padding: 5,
     width: "100%",
   },
 });
