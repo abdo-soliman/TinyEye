@@ -1,9 +1,10 @@
-import Images from "../../models/Image";
+import Image from "../../models/Image";
 
 class ImageController {
-  addImage = async (path, boardId, humanId) => {
-    await Images.create({
+  addImage = async (path, url, boardId, humanId) => {
+    await Image.create({
       iPath: path,
+      iUrl: url,
       boardId: boardId,
       humanId: humanId,
     });
@@ -11,7 +12,7 @@ class ImageController {
   };
 
   deleteImage = (req, res) => {
-    Images.destroy({
+    Image.destroy({
       where: {
         id: req.body.id,
       },
@@ -20,7 +21,7 @@ class ImageController {
   };
 
   deleteHumanImages = async (humanId) => {
-    await Images.destroy({
+    await Image.destroy({
       where: {
         humanId: humanId,
       },
@@ -28,7 +29,7 @@ class ImageController {
   };
 
   updateImage = (req, res) => {
-    Images.update(
+    Image.update(
       {
         ipath: req.body.path,
         boardId: req.body.boardid,
@@ -43,7 +44,7 @@ class ImageController {
   };
 
   getImagebyboard = async (req, res) => {
-    var images = await Images.findAll({
+    var images = await Image.findAll({
       where: {
         boardId: req.body.boardId,
       },
@@ -52,7 +53,7 @@ class ImageController {
   };
 
   getImagebyboardAndHuman = async (boardId, humanId) => {
-    var images = await Images.findAll({
+    var images = await Image.findAll({
       where: {
         boardId: boardId,
         humanId: humanId,
@@ -62,7 +63,7 @@ class ImageController {
   };
 
   getImagebyhuman = async (req, res) => {
-    var images = await Images.findAll({
+    var images = await Image.findAll({
       where: {
         humanId: req.body.humanId,
       },

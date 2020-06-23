@@ -1,7 +1,8 @@
 import db from "./db";
 import Sequelize from "sequelize";
+import Image from "./Image";
 
-const Humans = db.define(
+const Human = db.define(
   "humans",
   {
     id: {
@@ -21,7 +22,19 @@ const Humans = db.define(
   },
   {
     timestamps: true,
+    getterMethods: {
+      image: async function () {
+        const image = await Image.findOne({
+          where: {
+            humanId: this.getDataValue("id"),
+          },
+        });
+        return image.dataValues.iUrl;
+      },
+    },
   }
 );
 
-export default Humans;
+// Human.belongsTo(Image, { as: "images", foreignKey: "humanId" });
+
+export default Human;

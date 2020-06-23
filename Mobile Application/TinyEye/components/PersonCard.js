@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { StyleSheet, View } from "react-native";
-import { Card, Avatar, IconButton, Menu, List } from "react-native-paper";
-import { TouchableOpacity } from "react-native-gesture-handler";
+import { Avatar, IconButton, Menu, List } from "react-native-paper";
 
 const PersonCard = (props) => {
   const [visible, setVisible] = useState(false);

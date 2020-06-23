@@ -1,7 +1,8 @@
 import db from "./db";
 import Sequelize from "sequelize";
+import Human from "./Human";
 
-const Images = db.define(
+const Image = db.define(
   "images",
   {
     id: {
@@ -16,6 +17,7 @@ const Images = db.define(
       type: Sequelize.DATE
     },
     iPath: Sequelize.STRING,
+    iUrl: Sequelize.STRING,
     boardId: {
         type: Sequelize.INTEGER,
         references: {
@@ -37,4 +39,6 @@ const Images = db.define(
   }
 );
 
-export default Images;
+// Image.belongsTo(Human)
+
+export default Image;

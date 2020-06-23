@@ -38,5 +38,6 @@ Route.post(
   createHumanRequest
 );
 Route.post("/remove/human", "HumanController@removeHuman", removeHumanRequest);
+Route.get("/humans", "HumanController@index", [AuthMiddleware]);
 
 export default router;

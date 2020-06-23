@@ -20,5 +20,6 @@
     "host": "127.0.0.1",
     "dialect": "mysql"
   },
-  "JWT_SECRET": "54bfc869f8828c06c8c3cf77ce2bc6c8e3f6e527a0f3b7e370f48c9fddc0326a70caaaef40fa812db83f9c0277f74470603a7b5d1db0b617a1c3cb2e8cb7476a"
+  "JWT_SECRET": "54bfc869f8828c06c8c3cf77ce2bc6c8e3f6e527a0f3b7e370f48c9fddc0326a70caaaef40fa812db83f9c0277f74470603a7b5d1db0b617a1c3cb2e8cb7476a",
+  "url": "http://192.168.1.5:3000"
 }

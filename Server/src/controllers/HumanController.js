@@ -1,18 +1,36 @@
-import validate from "../requests";
-import Humans from "../../models/Human";
-import Sequelize from "sequelize";
+import Human from "../../models/Human";
 import ImageController from "./ImageController";
 import fs from "fs";
+const config = require("../../config/config.json");
 class HumanController {
-  async addHuman(name, myDirectory, boardId) {
-    const human = await Humans.create({
+  index = async (req, res) => {
+    const boardId = req.user.boardId;
+    const humans = await Human.findAll({
+      where: {
+        boardId: boardId,
+      },
+    });
+
+    if (humans) {
+      let data = [];
+      for (let index = 0; index < humans.length; index++) {
+        const human = humans[index];
+        data.push({ ...human.dataValues, image: await human.get("image") });
+      }
+      return res.json(data);
+    }
+    return res.json([]);
+  };
+
+  addHuman = async (name, myDirectory, boardId) => {
+    const human = await Human.create({
       name: name,
       dirPath: myDirectory,
       boardId: boardId,
     });
     // make it using try to handle errors
     return human;
-  }
+  };
 
   makedirectory = (name) => {
     fs.mkdir(name, { recursive: true }, function (err) {
@@ -40,6 +58,7 @@ class HumanController {
     this.makedirectory(myDirectory);
     for (let i = 0; i < req.body.images.length; i++) {
       const imagePath = `${myDirectory}/image_${i}`;
+      const imageUrl = `${config.url}/board_${req.user.boardId}/Images/${name}_${now}/image_${i}`;
       fs.writeFile(imagePath, req.body.images[i], "base64", async (err) => {
         console.log(err);
         if (err) {
@@ -51,6 +70,7 @@ class HumanController {
       // save in database in images indicate new image
       await imagecontroller.addImage(
         imagePath,
+        imageUrl,
         req.user.boardId,
         human.dataValues.id
       );
@@ -78,24 +98,24 @@ class HumanController {
   };
 
   deleteHumanbyid = async (id) => {
-    await Humans.destroy({
+    await Human.destroy({
       where: {
         id: id,
       },
     });
   };
 
-  async getHumanbyboard(boardId) {
-    var humans = await Humans.findAll({
+  getHumanbyboard = async (boardId) => {
+    var humans = await Human.findAll({
       where: {
         boardId: boardId,
       },
     });
     return humans;
-  }
+  };
 
   deleteHumanbyname = async (req, res) => {
-    var human = await Humans.destroy({
+    var human = await Human.destroy({
       where: {
         name: req.body.name,
       },
@@ -104,7 +124,7 @@ class HumanController {
   };
 
   getHumanbyid = async (id) => {
-    const human = await Humans.findOne({
+    const human = await Human.findOne({
       where: {
         id: id,
       },
