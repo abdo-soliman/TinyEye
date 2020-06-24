@@ -1,24 +1,34 @@
 import React, { Component } from "react";
-import { StyleSheet, FlatList, View, Alert } from "react-native";
-import { connect } from "react-redux";
-import { removeToken } from "../core/utils";
-import PersonCard from "../components/PersonCard";
+import {
+  StyleSheet,
+  FlatList,
+  View,
+  Alert,
+  RefreshControl,
+} from "react-native";
+import PersonCard from "../../components/PersonCard";
 import { FAB } from "react-native-paper";
-import { theme } from "../core/theme";
+import { theme } from "../../core/theme";
 import Axios from "axios";
-import apiRoutes from "../core/apiRoutes";
+import apiRoutes from "../../core/apiRoutes";
 
 export class PersonsScreen extends Component {
   constructor(props) {
     super(props);
     this.state = {
       persons: [],
+      open: false,
+      refreshing: false,
     };
   }
 
   componentDidMount() {
     this.getPersons();
   }
+
+  onRefresh = () => {
+    this.getPersons();
+  };
 
   getPersons = () => {
     Axios.get(apiRoutes.persons.index)
@@ -37,7 +47,14 @@ export class PersonsScreen extends Component {
     });
   };
 
+  goToAddPerson = () => {
+    this.props.navigation.navigate("AddPerson");
+  };
+
+  _onStateChange = ({ open }) => this.setState({ open });
+
   render() {
+    const { open } = this.state;
     return (
       <View
         style={{
@@ -45,6 +62,12 @@ export class PersonsScreen extends Component {
         }}
       >
         <FlatList
+          refreshControl={
+            <RefreshControl
+              refreshing={this.state.refreshing}
+              onRefresh={this.onRefresh}
+            />
+          }
           style={{ width: "100%" }}
           data={this.state.persons}
           renderItem={({ item }) => (
@@ -57,10 +80,28 @@ export class PersonsScreen extends Component {
           )}
           keyExtractor={(item) => item.id.toString()}
         />
-        <FAB
-          style={styles.fab}
-          icon="plus"
-          onPress={() => console.log("Pressed")}
+        <FAB.Group
+          open={open}
+          fabStyle={{ backgroundColor: theme.colors.primary }}
+          icon={open ? "close" : "plus"}
+          actions={[
+            {
+              icon: "camera",
+              label: "Camera",
+              onPress: this.goToAddPerson,
+            },
+            {
+              icon: "file-image",
+              label: "Gallery",
+              onPress: () => console.log("Pressed Gallery"),
+            },
+          ]}
+          onStateChange={this._onStateChange}
+          onPress={() => {
+            if (open) {
+              // do something if the speed dial is open
+            }
+          }}
         />
       </View>
     );

@@ -7,5 +7,6 @@ export default {
   persons: {
     index: "humans",
     show: "humans/show",
+    add: "model/register",
   },
 };

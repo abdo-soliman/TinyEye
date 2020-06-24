@@ -93,7 +93,6 @@ class ModelController {
     const imagecontroller = new ImageController();
     var humans = await humancontroller.getHumanbyboard(req.user.boardId);
     var myDirectory = `${__dirname}/../../storage/board_${req.user.boardId}`;
-    myDirectory = myDirectory.replace(" ", "''");
     this.deleteFile(`${myDirectory}/trainFile`);
     this.deleteFile(`${myDirectory}/testFile`);
     humans.forEach(async (human, index) => {

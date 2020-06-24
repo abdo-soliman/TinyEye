@@ -52,12 +52,11 @@ class HumanController {
   };
 
   prepareData = async (req, res) => {
+    console.log(req.files);
     const imagecontroller = new ImageController();
     const name = req.body.name.replace(" ", "_");
     const now = Date.now();
     let myDirectory = `${__dirname}/../../storage/board_${req.user.boardId}/Images/${name}_${now}`;
-    // // WHY??????????????????????????????
-    myDirectory = myDirectory.replace(" ", "''");
     // // save in data base in humans indicate new class
     var human = await this.addHuman(
       req.body.name,
@@ -65,10 +64,10 @@ class HumanController {
       req.user.boardId
     );
     this.makedirectory(myDirectory);
-    for (let i = 0; i < req.body.images.length; i++) {
+    for (let i = 0; i < req.files.length; i++) {
       const imagePath = `${myDirectory}/image_${i}`;
       const imageUrl = `${config.url}/board_${req.user.boardId}/Images/${name}_${now}/image_${i}`;
-      fs.writeFile(imagePath, req.body.images[i], "base64", async (err) => {
+      fs.rename(req.files[i].path, imagePath, async (err) => {
         console.log(err);
         if (err) {
           await this.deleteHumanbyid(human.dataValues.id);

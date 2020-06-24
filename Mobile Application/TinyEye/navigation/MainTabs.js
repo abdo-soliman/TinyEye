@@ -1,18 +1,18 @@
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import HomeScreen from "../screens/HomeScreen";
-import PersonsScreen from "../screens/PersonsScreen";
+import PersonsScreen from "../screens/persons/PersonsScreen";
 import { createStackNavigator } from "@react-navigation/stack";
 import { Icon } from "native-base";
 import { theme } from "../core/theme";
-import { BlurView } from "expo-blur";
-import { StyleSheet } from "react-native";
-import { ProfileScreen } from "../screens/ProfileScreen";
-import PersonScreen from "../screens/PersonScreen";
+import ProfileScreen from "../screens/ProfileScreen";
+import PersonScreen from "../screens/persons/PersonScreen";
+import LogoHeader from "../components/LogoHeader";
+import AddPersonScreen from "../screens/persons/AddPersonScreen";
+import AddPersonNameScreen from "../screens/persons/AddPersonNameScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
-const headerOptions = {};
 
 const HomeStack = () => {
   return (
@@ -20,7 +20,7 @@ const HomeStack = () => {
       <Stack.Screen
         name="Home"
         component={HomeScreen}
-        options={headerOptions}
+        options={{ headerTitle: (props) => <LogoHeader /> }}
       />
     </Stack.Navigator>
   );
@@ -29,15 +29,17 @@ const HomeStack = () => {
 const PersonsStack = () => {
   return (
     <Stack.Navigator>
+      <Stack.Screen name="Persons" component={PersonsScreen} />
+      <Stack.Screen name="Person" component={PersonScreen} />
       <Stack.Screen
-        name="Persons"
-        component={PersonsScreen}
-        options={headerOptions}
+        name="AddPerson"
+        component={AddPersonScreen}
+        options={{ headerTitle: "Add new person" }}
       />
       <Stack.Screen
-        name="Person"
-        component={PersonScreen}
-        options={headerOptions}
+        name="AddPersonName"
+        component={AddPersonNameScreen}
+        options={{ headerTitle: "Add person name" }}
       />
     </Stack.Navigator>
   );
@@ -46,11 +48,7 @@ const PersonsStack = () => {
 const ProfileStack = () => {
   return (
     <Stack.Navigator>
-      <Stack.Screen
-        name="Profile"
-        component={ProfileScreen}
-        options={headerOptions}
-      />
+      <Stack.Screen name="Profile" component={ProfileScreen} />
     </Stack.Navigator>
   );
 };

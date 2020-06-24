@@ -1,9 +1,9 @@
 import React, { Component } from "react";
 import { Alert } from "react-native";
-import DeleteMenu from "../components/DeleteMenu";
-import PersonHeader from "../components/PersonHeader";
+import DeleteMenu from "../../components/DeleteMenu";
+import PersonHeader from "../../components/PersonHeader";
 import Axios from "axios";
-import apiRoutes from "../core/apiRoutes";
+import apiRoutes from "../../core/apiRoutes";
 import GallerySwiper from "react-native-gallery-swiper";
 
 export class PersonScreen extends Component {
