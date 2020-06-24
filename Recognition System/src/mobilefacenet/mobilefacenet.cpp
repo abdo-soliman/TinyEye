@@ -31,21 +31,30 @@ torch::Tensor MobileFacenet::get_embeddings(torch::Tensor imgs)
     return net.forward(inputs).toTensor();
 }
 
-torch::Tensor MobileFacenet::get_embeddings(std::vector<cv::Mat>& imgs)
+torch::Tensor MobileFacenet::get_embeddings(std::vector<cv::Mat> &imgs)
 {
     std::vector<torch::jit::IValue> inputs;
-    torch::Tensor img_tensor;
-    for (auto& img : imgs)
+    torch::Tensor imgs_tensor, temp;
+    int index = 1;
+    for (auto &img : imgs)
     {
-        img_tensor = img_loader::img_to_tensor(img);
-        img_tensor = img_tensor.view({1, 3, config.image_height, config.image_width});
-        inputs.push_back(img_loader::img_to_tensor(img));
+        temp = img_loader::img_to_tensor(img).view({1, 3, config.image_height, config.image_width});
+        if (index == 1)
+            imgs_tensor = temp;
+        else
+        {
+            imgs_tensor = torch::cat({imgs_tensor, temp})
+                                .view({index, 3, config.image_height, config.image_width})
+                                .to(torch::kFloat);
+        }
+        index++;
     }
+    inputs.push_back(imgs_tensor);
 
     return net.forward(inputs).toTensor();
 }
 
-torch::Tensor MobileFacenet::get_embeddings(cv::Mat& img)
+torch::Tensor MobileFacenet::get_embeddings(cv::Mat &img)
 {
     std::vector<torch::jit::IValue> inputs;
     auto img_tensor = img_loader::img_to_tensor(img);
@@ -54,5 +63,5 @@ torch::Tensor MobileFacenet::get_embeddings(cv::Mat& img)
 
     return net.forward(inputs).toTensor();
 }
-} // mobilefacenet
-} // tinyeye
+} // namespace mobilefacenet
+} // namespace tinyeye
