@@ -1,22 +1,14 @@
-import React, { useState } from "react";
+import React from "react";
 import { StyleSheet, View } from "react-native";
-import { Avatar, IconButton, Menu, List } from "react-native-paper";
+import { Avatar, List } from "react-native-paper";
+import DeleteMenu from "./DeleteMenu";
 
 const PersonCard = (props) => {
-  const [visible, setVisible] = useState(false);
-
-  const _openMenu = () => {
-    console.log("pressed");
-    setVisible(true);
-  };
-
-  const _closeMenu = () => setVisible(false);
-
-  const image = props.image;
+  const { image, id, name } = props;
   return (
     <List.Item
-      title="First Item"
-      onPress={() => console.log("card")}
+      title={name}
+      onPress={props.onPress}
       left={(props) => (
         <View
           style={{
@@ -32,17 +24,7 @@ const PersonCard = (props) => {
           />
         </View>
       )}
-      right={(props) => (
-        <Menu
-          visible={visible}
-          onDismiss={_closeMenu}
-          anchor={
-            <IconButton {...props} onPress={_openMenu} icon="dots-vertical" />
-          }
-        >
-          <Menu.Item onPress={() => {}} title="Delete" />
-        </Menu>
-      )}
+      right={(props) => <DeleteMenu {...props} />}
     />
   );
 };

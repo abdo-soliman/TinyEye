@@ -31,6 +31,14 @@ const Human = db.define(
         });
         return image.dataValues.iUrl;
       },
+      images: async function () {
+        const images = await Image.findAll({
+          where: {
+            humanId: this.getDataValue("id"),
+          },
+        });
+        return images;
+      },
     },
   }
 );

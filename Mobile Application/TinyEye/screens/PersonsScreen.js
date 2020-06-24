@@ -1,81 +1,61 @@
 import React, { Component } from "react";
-import { StyleSheet, FlatList, View } from "react-native";
+import { StyleSheet, FlatList, View, Alert } from "react-native";
 import { connect } from "react-redux";
 import { removeToken } from "../core/utils";
 import PersonCard from "../components/PersonCard";
 import { FAB } from "react-native-paper";
 import { theme } from "../core/theme";
+import Axios from "axios";
+import apiRoutes from "../core/apiRoutes";
 
 export class PersonsScreen extends Component {
-  logout = async () => {
-    await removeToken();
-    this.props.setLogout();
+  constructor(props) {
+    super(props);
+    this.state = {
+      persons: [],
+    };
+  }
+
+  componentDidMount() {
+    this.getPersons();
+  }
+
+  getPersons = () => {
+    Axios.get(apiRoutes.persons.index)
+      .then((response) => {
+        const { data } = response;
+        this.setState({ persons: data });
+      })
+      .catch((error) => {
+        Alert.alert("Error", "Can't load data");
+      });
   };
+
+  goToPerson = (key) => {
+    this.props.navigation.navigate("Person", {
+      id: key,
+    });
+  };
+
   render() {
-    const array = [
-      {
-        key: "1",
-        type: "known",
-        image: "https://picsum.photos/id/1011/200/300",
-      },
-      {
-        key: "2",
-        type: "known",
-        image: "https://picsum.photos/id/1011/200/300",
-      },
-      {
-        key: "3",
-        type: "known",
-        image: "https://picsum.photos/id/1011/200/300",
-      },
-      {
-        key: "4",
-        type: "known",
-        image: "https://picsum.photos/id/1011/200/300",
-      },
-      {
-        key: "5",
-        type: "unknown",
-        image: "https://picsum.photos/id/1005/200/300",
-      },
-      {
-        key: "6",
-        type: "unknown",
-        image: "https://picsum.photos/id/1005/200/300",
-      },
-      {
-        key: "7",
-        type: "unknown",
-        image: "https://picsum.photos/id/1005/200/300",
-      },
-      {
-        key: "8",
-        type: "unknown",
-        image: "https://picsum.photos/id/1005/200/300",
-      },
-      {
-        key: "9",
-        type: "unknown",
-        image: "https://picsum.photos/id/1005/200/300",
-      },
-    ];
-    const { navigation } = this.props;
     return (
       <View
         style={{
           flex: 1,
-          marginTop: 80,
-          marginBottom: 20,
-          alignItems: "center",
         }}
       >
         <FlatList
           style={{ width: "100%" }}
-          data={array}
+          data={this.state.persons}
           renderItem={({ item }) => (
-            <PersonCard image={item.image} type={item.type} />
+            <PersonCard
+              id={item.id}
+              image={item.image}
+              name={item.name}
+              onPress={() => this.goToPerson(item.id)}
+            />
           )}
-          keyExtractor={(item) => item.key}
+          keyExtractor={(item) => item.id.toString()}
         />
         <FAB
           style={styles.fab}
@@ -97,15 +77,4 @@ const styles = StyleSheet.create({
   },
 });
 
-const mapDispatchToProps = (dispatch) => {
-  return {
-    setLogout: () => {
-      dispatch({
-        type: "SET_USER_LOGOUT",
-        payload: null,
-      });
-    },
-  };
-};
-
-export default connect(null, mapDispatchToProps)(PersonsScreen);
+export default PersonsScreen;

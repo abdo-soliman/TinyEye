@@ -4,4 +4,8 @@ export default {
     login: "/login",
     me: "/me",
   },
+  persons: {
+    index: "humans",
+    show: "humans/show",
+  },
 };

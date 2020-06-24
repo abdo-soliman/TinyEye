@@ -8,15 +8,11 @@ import { theme } from "../core/theme";
 import { BlurView } from "expo-blur";
 import { StyleSheet } from "react-native";
 import { ProfileScreen } from "../screens/ProfileScreen";
+import PersonScreen from "../screens/PersonScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
-const headerOptions = {
-  headerTransparent: true,
-  headerBackground: () => (
-    <BlurView tint="light" intensity={100} style={StyleSheet.absoluteFill} />
-  ),
-};
+const headerOptions = {};
 
 const HomeStack = () => {
   return (
@@ -36,6 +32,11 @@ const PersonsStack = () => {
       <Stack.Screen
         name="Persons"
         component={PersonsScreen}
+        options={headerOptions}
+      />
+      <Stack.Screen
+        name="Person"
+        component={PersonScreen}
         options={headerOptions}
       />
     </Stack.Navigator>

@@ -53,7 +53,7 @@ export class HomeScreen extends Component {
       },
     ];
     return (
-      <View style={{ marginTop: 80, marginBottom: 20, alignItems: "center" }}>
+      <View>
         <FlatList
           style={{ width: "100%" }}
           data={array}

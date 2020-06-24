@@ -22,6 +22,15 @@ class HumanController {
     return res.json([]);
   };
 
+  show = async (req, res) => {
+    let human = await this.getHumanbyid(req.body.id);
+    if (human) {
+      human = { ...human.dataValues, images: await human.get("images") };
+      return res.json(human);
+    }
+    return res.status(404).json({});
+  };
+
   addHuman = async (name, myDirectory, boardId) => {
     const human = await Human.create({
       name: name,
