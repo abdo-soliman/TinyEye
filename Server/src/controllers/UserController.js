@@ -1,4 +1,5 @@
 import User from "../../models/User";
+import pushNotification from "../notifications";
 
 class UserController {
   deleteUser = async (req, res) => {
@@ -26,6 +27,21 @@ class UserController {
       return res.json({ msg: "user email updated", user: user.dataValues });
     }
     return res.status(404).json({ msg: "User not found!" });
+  };
+
+  updateToken = async (req, res) => {
+    const { token } = req.body;
+    const user = await User.update(
+      {
+        expoToken: token,
+      },
+      {
+        where: {
+          id: req.user.id,
+        },
+      }
+    );
+    return res.json(user.dataValues);
   };
 
   updatePassword = async (req, res) => {
@@ -66,6 +82,14 @@ class UserController {
       return res.json(user.dataValues);
     }
     return res.status(404).json({ msg: "User not found!" });
+  };
+
+  push = async (req, res) => {
+    const { expoToken } = req.user;
+    if (expoToken) {
+      pushNotification([expoToken], "Title", "This is body");
+    }
+    return res.json("pushed");
   };
 }
 

@@ -14,7 +14,7 @@ export class AddPersonScreen extends Component {
     this.state = {
       type: Camera.Constants.Type.front,
       hasPermission: null,
-      number: 2,
+      number: 10,
       images: [],
     };
     this.camera = null;

@@ -52,7 +52,6 @@ class HumanController {
   };
 
   prepareData = async (req, res) => {
-    console.log(req.files);
     const imagecontroller = new ImageController();
     const name = req.body.name.replace(" ", "_");
     const now = Date.now();
@@ -89,7 +88,6 @@ class HumanController {
   removeHuman = async (req, res) => {
     //assumed that request contains user and human objects
     const human = await this.getHumanbyid(req.body.humanId);
-    console.log("human", human);
     if (human) {
       await this.deleteHumanbyid(req.body.humanId);
       const myDirectory = human.dataValues.dirPath;

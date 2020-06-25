@@ -11,6 +11,7 @@ import {
   deleteUserRequest,
   updateUserPasswordRequest,
   updateUserEmailRequest,
+  updateUserTokenRequest,
 } from "../requests/UsersRequest";
 
 Route.get("/", "HomeController@index", indexRequest);
@@ -19,7 +20,7 @@ Route.post("/login", "AuthController@login", loginRequest);
 Route.get("/me", "AuthController@me", [AuthMiddleware]);
 // User Routes
 Route.get("/get/user", "UserController@getUser", getUserRequest);
-Route.get("/delete/user", "UserController@deleteUser", deleteUserRequest);
+Route.post("/delete/user", "UserController@deleteUser", deleteUserRequest);
 Route.post(
   "/update/password",
   "UserController@updatePassword",
@@ -30,6 +31,14 @@ Route.post(
   "UserController@updateEmail",
   updateUserEmailRequest
 );
+
+Route.post(
+  "/update/notification/token",
+  "UserController@updateToken",
+  updateUserTokenRequest
+);
+
+Route.post("/push/notification", "UserController@push", [AuthMiddleware]);
 
 Route.post("/create/model", "ModelController@createModel", [AuthMiddleware]);
 Route.post(

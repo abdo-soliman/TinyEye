@@ -17,6 +17,7 @@ module.exports = {
           type: Sequelize.DATE,
         },
         name: Sequelize.STRING,
+        expoToken: Sequelize.STRING,
         email: {
           type: Sequelize.STRING,
           indicesType: "UNIQUE",

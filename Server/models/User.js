@@ -5,6 +5,7 @@ const User = db.define(
   "user",
   {
     name: Sequelize.STRING,
+    expoToken: Sequelize.STRING,
     email: {
       type: Sequelize.STRING,
     },

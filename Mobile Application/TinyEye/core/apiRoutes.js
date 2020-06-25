@@ -9,4 +9,7 @@ export default {
     show: "humans/show",
     add: "model/register",
   },
+  user: {
+    updateToken: "update/notification/token"
+  }
 };

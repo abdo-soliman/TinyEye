@@ -34,7 +34,7 @@ class ModelController {
     });
   };
 
-  trainModel = async (myDirectory) => {
+  trainModel = async (myDirectory, delimiter) => {
     if (!fs.existsSync(myDirectory + "/models")) {
       this.makedirectory(myDirectory + "/models");
     }
@@ -47,8 +47,8 @@ class ModelController {
       const testFile = `${myDirectory}/testFile`;
       const modelFile = `${myDirectory}/models/model.pt`;
       const logFile = `${myDirectory}/logs/log.json`;
-      const executeStatement = `tinyModelBuilder --train-map-path ${trainFile} --test-map-path ${testFile} --output-model-path ${modelFile} --json-log-path ${logFile}`;
-      exec.exec(executeStatement, (error, stdout, stderr) => {
+      const executeStatement = `~/tinyeye-server/bin/tinyeye-server_module 2> /dev/null --server-log-path ~/tinyeye-server.log --mtcnn-models-dir ~/tinyeye-server/models/mtcnn --mfn-model-path ~/tinyeye-server/models/mobilefacenet.pt --train-map-path ${trainFile} --test-map-path ${testFile} --output-model-path ${modelFile} --json-log-path ${logFile} --mapping-file-delimiter ${delimiter} --log true`;
+      await exec.exec(executeStatement, (error, stdout, stderr) => {
         console.log("stdout: " + stdout);
         console.log("stderr: " + stderr);
         if (error !== null) {
@@ -60,13 +60,12 @@ class ModelController {
     }
   };
 
-  mappingToFile = async (images, myDirectory, classId) => {
+  mappingToFile = async (images, myDirectory, classId, delimiter) => {
     var trainLength = Math.ceil(0.8 * images.length);
-
     for (let i = 0; i < trainLength; i++) {
       await fs.appendFileSync(
         myDirectory + "/trainFile",
-        images[i].dataValues.iPath + " " + classId + "\n",
+        images[i].dataValues.iPath + delimiter + classId + "\n",
         function (err) {
           console.log(err);
         }
@@ -76,7 +75,7 @@ class ModelController {
     for (let i = trainLength; i < images.length; i++) {
       await fs.appendFileSync(
         myDirectory + "/testFile",
-        images[i].dataValues.iPath + " " + classId + "\n",
+        images[i].dataValues.iPath + delimiter + classId + "\n",
         function (err) {
           console.log(err);
         }
@@ -93,6 +92,7 @@ class ModelController {
     const imagecontroller = new ImageController();
     var humans = await humancontroller.getHumanbyboard(req.user.boardId);
     var myDirectory = `${__dirname}/../../storage/board_${req.user.boardId}`;
+    const delimiter = ",";
     this.deleteFile(`${myDirectory}/trainFile`);
     this.deleteFile(`${myDirectory}/testFile`);
     humans.forEach(async (human, index) => {
@@ -100,9 +100,9 @@ class ModelController {
         human.dataValues.boardId,
         human.dataValues.id
       );
-      this.mappingToFile(images, myDirectory, index);
+      this.mappingToFile(images, myDirectory, index, delimiter);
     });
-    this.trainModel(myDirectory);
+    await this.trainModel(myDirectory, delimiter);
     return res.json({ msg: "model created successfully" });
   };
 

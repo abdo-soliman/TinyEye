@@ -28,3 +28,9 @@ export const updateUserEmailRequest = [
   check("email").isEmail(),
   validate,
 ];
+
+export const updateUserTokenRequest = [
+  AuthMiddleware,
+  check("token").isString(),
+  validate,
+];
