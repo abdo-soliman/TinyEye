@@ -1,4 +1,5 @@
 #include <thread>
+#include "logger/logger.h"
 #include "recognition_system/recognition_system.h"
 
 int main(int argc, char **argv)
@@ -9,6 +10,7 @@ int main(int argc, char **argv)
         return -1;
     }
 
+    tinyeye::logger::setup_server_socket("http://localhost:3000");
     tinyeye::RecognitionSystem::intialize("../../models/mtcnn", "../../models/mobilefacenet.pt", 128, 5,
                                           "../../models/svm_model.pt", "../../models/classes_map.txt", argv[1]);
 

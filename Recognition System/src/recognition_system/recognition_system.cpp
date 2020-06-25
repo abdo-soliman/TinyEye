@@ -5,6 +5,9 @@
 #include <iostream>
 #include <opencv2/tracking.hpp>
 
+#include "utils.h"
+#include "logger/logger.h"
+
 namespace tinyeye
 {
 RecognitionSystem RecognitionSystem::recognition_system;
@@ -18,16 +21,49 @@ void RecognitionSystem::intialize(std::string mtcnn_models_dir, std::string mfn_
                                   int in_features, int out_features, std::string classifier_model_path,
                                   std::string classifier_map_path, std::string camera_ip)
 {
-    recognition_system.detector.reset();
-    recognition_system.detector = std::make_unique<mtcnn::MTCNN>(mtcnn_models_dir);
+    try
+    {
+        recognition_system.detector.reset();
+        recognition_system.detector = std::make_unique<mtcnn::MTCNN>(mtcnn_models_dir);
+    }
+    catch(const std::exception& e)
+    {
+        std::string error_msg = utils::replace_all(e.what(), "\n", " ");
+        error_msg = utils::replace_all(e.what(), "\0", " ");
+        error_msg = utils::replace_all(error_msg, "\"");
+        logger::LOG_ERROR(FAILED_TO_INTIALIZE_MTCNN, error_msg);
+        exit(-1);
+    }
 
-    recognition_system.mfn.reset();
-    recognition_system.mfn = std::make_unique<mobilefacenet::MobileFacenet>(mfn_model_path);
-
-    recognition_system.classifier.reset();
-    recognition_system.classifier = std::make_unique<svm>(in_features, out_features);
-    recognition_system.classifier->construct_map(classifier_map_path);
-    recognition_system.classifier->load(classifier_model_path);
+    try
+    {
+        recognition_system.mfn.reset();
+        recognition_system.mfn = std::make_unique<mobilefacenet::MobileFacenet>(mfn_model_path);
+    }
+    catch(const std::exception& e)
+    {
+        std::string error_msg = utils::replace_all(e.what(), "\n", " ");
+        error_msg = utils::replace_all(e.what(), "\0", " ");
+        error_msg = utils::replace_all(error_msg, "\"");
+        logger::LOG_ERROR(FAILED_TO_INTIALIZE_MOBILE_FACENET, error_msg);
+        exit(-1);
+    }
+    
+    try
+    {
+        recognition_system.classifier.reset();
+        recognition_system.classifier = std::make_unique<svm>(in_features, out_features);
+        recognition_system.classifier->construct_map(classifier_map_path);
+        recognition_system.classifier->load(classifier_model_path);
+    }
+    catch(const std::exception& e)
+    {
+        std::string error_msg = utils::replace_all(e.what(), "\n", " ");
+        error_msg = utils::replace_all(e.what(), "\0", " ");
+        error_msg = utils::replace_all(error_msg, "\"");
+        logger::LOG_ERROR(FAILED_TO_INTIALIZE_CLASSIFIER, error_msg);
+        exit(-1);
+    }
 
     recognition_system.ip = camera_ip;
 }
@@ -57,6 +93,7 @@ void RecognitionSystem::_recognition_loop()
     std::vector<cv::Mat> processing_buffer;
     std::map<int, std::vector<cv::Mat>> faces_buffer;
 
+    std::string name;
     int x1, y1, width, height, count;
     while (true)
     {
@@ -116,7 +153,13 @@ void RecognitionSystem::_recognition_loop()
         for (size_t i = 0; i < trackers.size(); i++)
         {
             if (!faces_buffer[i].empty())
-                std::cout << "[PROCESSING] prediction: " << classifier->predict_block(mfn->get_embeddings(faces_buffer[i])) << std::endl;
+            {
+                name = classifier->predict_block(mfn->get_embeddings(faces_buffer[i]));
+                if (name == "unknown")
+                    logger::LOG_INFO(DETECTED_UNKNOWN, "detected an unknown personal");
+                else
+                    logger::LOG_INFO(DETECTED_KNOWN, "detected " + name + " personal");
+            }
         }
     }
 }

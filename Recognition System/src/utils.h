@@ -111,6 +111,24 @@ public:
 
         return tokens;
     }
+
+    /**
+     * @param   std::string, std::string, std::string
+     * @return  std::string
+     * A utility function that replaces all occurances of to_replace with replacement
+     */
+    static std::string replace_all(std::string src, std::string to_replace, std::string replacement = "")
+    {
+        std::string result = src;
+        std::string::size_type n = 0;
+        while ((n = result.find(to_replace, n)) != std::string::npos)
+        {
+            result.replace(n, to_replace.size(), replacement);
+            n += replacement.size();
+        }
+
+        return result;
+    }
 };
 
 #endif
