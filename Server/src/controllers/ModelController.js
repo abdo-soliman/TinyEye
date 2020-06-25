@@ -3,15 +3,20 @@ import ImageController from "./ImageController";
 import HumanController from "./HumanController";
 import fs from "fs";
 import exec from "child_process";
+import pushNotification from "../notifications";
+import User from "../../models/User";
+import Board from "../../models/Board";
+import { io } from "../sockets";
+import ServerLogger from "../modules/ServerLogger";
+const config = require("../../config/config.json");
 
 class ModelController {
-  addModel = (req, res) => {
-    Models.create({
-      mpath: req.body.path,
-      boardId: req.body.boardid,
+  addModel = async (path, url, boardId) => {
+    return await Models.create({
+      mPath: path,
+      mUrl: url,
+      boardId: boardId,
     });
-
-    return res.json({ msg: "model inserted" });
   };
 
   deleteModel = (req, res) => {
@@ -27,14 +32,47 @@ class ModelController {
   makedirectory = (name) => {
     fs.mkdir(name, { recursive: true }, function (err) {
       if (err) {
-        console.log(err);
+        ServerLogger.error(err);
       } else {
-        console.log("New directory successfully created.");
+        ServerLogger.log("New directory successfully created " + name);
       }
     });
   };
 
-  trainModel = async (myDirectory, delimiter) => {
+  getBoardUsers = async (boardId) => {
+    const users = await User.findAll({ where: { boardId: boardId } });
+    return users;
+  };
+
+  sendNotifications = async (boardId) => {
+    const users = await this.getBoardUsers(boardId);
+    const tokens = [];
+    for (let index = 0; index < users.length; index++) {
+      const user = users[index];
+      tokens.push(user.dataValues.expoToken);
+    }
+    if (tokens !== []) {
+      await pushNotification(
+        tokens,
+        "Model Prepared",
+        "Model prepared and downloaded to the board"
+      );
+    }
+  };
+
+  getBoard = async (boardId) => {
+    const board = await Board.findOne({ where: { id: boardId } });
+    return board;
+  };
+
+  sendCompleteSignalToBoard = async (boardId, modelUrl) => {
+    const board = await this.getBoard(boardId);
+    io.on(`board-${board.UUID}`, (socket) => {
+      socket.broadcast.emit(modelUrl);
+    });
+  };
+
+  trainModel = async (req, myDirectory, delimiter, boardId) => {
     if (!fs.existsSync(myDirectory + "/models")) {
       this.makedirectory(myDirectory + "/models");
     }
@@ -46,17 +84,28 @@ class ModelController {
       const trainFile = `${myDirectory}/trainFile`;
       const testFile = `${myDirectory}/testFile`;
       const modelFile = `${myDirectory}/models/model.pt`;
+      const modelUrl = `${config.url}/board_${boardId}/models/model.pt`;
       const logFile = `${myDirectory}/logs/log.json`;
       const executeStatement = `~/tinyeye-server/bin/tinyeye-server_module 2> /dev/null --server-log-path ~/tinyeye-server.log --mtcnn-models-dir ~/tinyeye-server/models/mtcnn --mfn-model-path ~/tinyeye-server/models/mobilefacenet.pt --train-map-path ${trainFile} --test-map-path ${testFile} --output-model-path ${modelFile} --json-log-path ${logFile} --mapping-file-delimiter ${delimiter} --log true`;
-      await exec.exec(executeStatement, (error, stdout, stderr) => {
-        console.log("stdout: " + stdout);
-        console.log("stderr: " + stderr);
+      await exec.exec(executeStatement, async (error, stdout, stderr) => {
         if (error !== null) {
-          console.log("exec error: " + error);
+          ServerLogger.error(error);
+        } else {
+          if (stderr) {
+            ServerLogger.stdError(stderr);
+          } else {
+            ServerLogger.modelLog(stdout);
+            const model = await this.addModel(modelFile, modelUrl, boardId);
+            await this.sendCompleteSignalToBoard(
+              boardId,
+              model.dataValues.mUrl
+            );
+            await this.sendNotifications(boardId);
+          }
         }
       });
     } catch (error) {
-      console.log("exec error: " + error);
+      ServerLogger.error(error);
     }
   };
 
@@ -67,7 +116,7 @@ class ModelController {
         myDirectory + "/trainFile",
         images[i].dataValues.iPath + delimiter + classId + "\n",
         function (err) {
-          console.log(err);
+          ServerLogger.error(err);
         }
       );
     }
@@ -77,7 +126,7 @@ class ModelController {
         myDirectory + "/testFile",
         images[i].dataValues.iPath + delimiter + classId + "\n",
         function (err) {
-          console.log(err);
+          ServerLogger.error(err);
         }
       );
     }
@@ -102,7 +151,7 @@ class ModelController {
       );
       this.mappingToFile(images, myDirectory, index, delimiter);
     });
-    await this.trainModel(myDirectory, delimiter);
+    await this.trainModel(req, myDirectory, delimiter, req.user.boardId);
     return res.json({ msg: "model created successfully" });
   };
 

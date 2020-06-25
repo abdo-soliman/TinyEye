@@ -10,7 +10,7 @@ module.exports = {
       return queryInterface.createTable('users', { id: Sequelize.INTEGER });
     */
     await queryInterface.createTable(
-      "models",
+      "server-log",
       {
         id: {
           type: Sequelize.INTEGER,
@@ -23,17 +23,8 @@ module.exports = {
         updatedAt: {
           type: Sequelize.DATE,
         },
-        mPath: Sequelize.STRING,
-        mUrl: Sequelize.STRING,
-        boardId: {
-          type: Sequelize.INTEGER,
-          references: {
-            model: "boards",
-            key: "id",
-          },
-          onUpdate: "cascade",
-          onDelete: "cascade",
-        },
+        type: Sequelize.STRING,
+        data: Sequelize.TEXT,
       },
       {
         engine: "InnoDB", // default: 'InnoDB'
@@ -52,6 +43,6 @@ module.exports = {
       return queryInterface.dropTable('users');
 
     */
-    return queryInterface.dropTable("models");
+    return queryInterface.dropTable("server-log");
   },
 };

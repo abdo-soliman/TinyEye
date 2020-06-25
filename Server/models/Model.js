@@ -16,6 +16,7 @@ const Models = db.define(
       type: Sequelize.DATE,
     },
     mPath: Sequelize.STRING,
+    mUrl: Sequelize.STRING,
     boardId: {
       type: Sequelize.INTEGER,
       references: {

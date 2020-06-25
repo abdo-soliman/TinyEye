@@ -1,6 +1,7 @@
 import Human from "../../models/Human";
 import ImageController from "./ImageController";
 import fs from "fs";
+import ServerLogger from "../modules/ServerLogger";
 const config = require("../../config/config.json");
 class HumanController {
   index = async (req, res) => {
@@ -44,9 +45,9 @@ class HumanController {
   makedirectory = (name) => {
     fs.mkdir(name, { recursive: true }, function (err) {
       if (err) {
-        console.log(err);
+        ServerLogger.error(err);
       } else {
-        console.log("New directory successfully created.");
+        ServerLogger.log("New directory successfully created " + name);
       }
     });
   };
@@ -67,8 +68,8 @@ class HumanController {
       const imagePath = `${myDirectory}/image_${i}`;
       const imageUrl = `${config.url}/board_${req.user.boardId}/Images/${name}_${now}/image_${i}`;
       fs.rename(req.files[i].path, imagePath, async (err) => {
-        console.log(err);
         if (err) {
+          ServerLogger.error(err);
           await this.deleteHumanbyid(human.dataValues.id);
           fs.rmdir(myDirectory, { recursive: true }, () => {});
           return res.status(500).json("Failed to add the human");
