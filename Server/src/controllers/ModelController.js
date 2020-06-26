@@ -44,7 +44,7 @@ class ModelController {
     return users;
   };
 
-  sendNotifications = async (boardId) => {
+  sendSucessNotifications = async (boardId) => {
     const users = await this.getBoardUsers(boardId);
     const tokens = [];
     for (let index = 0; index < users.length; index++) {
@@ -56,6 +56,22 @@ class ModelController {
         tokens,
         "Model Prepared",
         "Model prepared and downloaded to the board"
+      );
+    }
+  };
+
+  sendFailNotifications = async (boardId) => {
+    const users = await this.getBoardUsers(boardId);
+    const tokens = [];
+    for (let index = 0; index < users.length; index++) {
+      const user = users[index];
+      tokens.push(user.dataValues.expoToken);
+    }
+    if (tokens !== []) {
+      await pushNotification(
+        tokens,
+        "Model Failed",
+        "Model failed please try again"
       );
     }
   };
@@ -72,7 +88,7 @@ class ModelController {
     });
   };
 
-  trainModel = async (req, myDirectory, delimiter, boardId) => {
+  traiingnModel = async (req, myDirectory, delimiter, boardId) => {
     if (!fs.existsSync(myDirectory + "/models")) {
       this.makedirectory(myDirectory + "/models");
     }
@@ -90,8 +106,10 @@ class ModelController {
       await exec.exec(executeStatement, async (error, stdout, stderr) => {
         if (error !== null) {
           ServerLogger.error(error);
+          await this.sendFailNotifications(boardId);
         } else {
           if (stderr) {
+            await this.sendFailNotifications(boardId);
             ServerLogger.stdError(stderr);
           } else {
             ServerLogger.modelLog(stdout);
@@ -100,7 +118,7 @@ class ModelController {
               boardId,
               model.dataValues.mUrl
             );
-            await this.sendNotifications(boardId);
+            await this.sendSucessNotifications(boardId);
           }
         }
       });
@@ -136,7 +154,7 @@ class ModelController {
     fs.existsSync(fileName) && fs.unlinkSync(fileName);
   };
 
-  createModel = async (req, res) => {
+  createModel = async (req) => {
     const humancontroller = new HumanController();
     const imagecontroller = new ImageController();
     var humans = await humancontroller.getHumanbyboard(req.user.boardId);
@@ -144,31 +162,45 @@ class ModelController {
     const delimiter = ",";
     this.deleteFile(`${myDirectory}/trainFile`);
     this.deleteFile(`${myDirectory}/testFile`);
+    this.deleteFile(`${myDirectory}/mapFile`);
     humans.forEach(async (human, index) => {
       var images = await imagecontroller.getImagebyboardAndHuman(
         human.dataValues.boardId,
         human.dataValues.id
       );
+      await fs.appendFileSync(
+        myDirectory + "/mapFile",
+        human.dataValues.name + "=" + index + "\n",
+        function (err) {
+          ServerLogger.error(err);
+        }
+      );
       this.mappingToFile(images, myDirectory, index, delimiter);
     });
-    await this.trainModel(req, myDirectory, delimiter, req.user.boardId);
-    return res.json({ msg: "model created successfully" });
+    await this.traiingnModel(req, myDirectory, delimiter, req.user.boardId);
   };
 
-  updateModel = (req, res) => {
-    Models.update(
-      {
-        mpath: req.body.path,
-        boardId: req.body.boardid,
-      },
-      {
-        where: {
-          id: req.body.id,
-        },
-      }
-    );
-    return res.json({ msg: "model updated" });
+  trainModel = async (req, res) => {
+    await this.createModel(req);
+    return res.json({
+      msg: "Model is training we will notify you when we done",
+    });
   };
+
+  // updateModel = (req, res) => {
+  //   Models.update(
+  //     {
+  //       mpath: req.body.path,
+  //       boardId: req.body.boardid,
+  //     },
+  //     {
+  //       where: {
+  //         id: req.body.id,
+  //       },
+  //     }
+  //   );
+  //   return res.json({ msg: "model updated" });
+  // };
 
   getModel = async (req, res) => {
     var model = await Models.findAll({

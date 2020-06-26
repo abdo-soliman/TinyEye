@@ -1,7 +1,9 @@
 import Human from "../../models/Human";
+import Models from "../../models/Model";
 import ImageController from "./ImageController";
 import fs from "fs";
 import ServerLogger from "../modules/ServerLogger";
+import ModelController from "./ModelController";
 const config = require("../../config/config.json");
 class HumanController {
   index = async (req, res) => {
@@ -42,18 +44,20 @@ class HumanController {
     return human;
   };
 
-  makedirectory = (name) => {
-    fs.mkdir(name, { recursive: true }, function (err) {
+  makedirectory = async (name) => {
+    await fs.mkdir(name, { recursive: true }, async function (err) {
       if (err) {
-        ServerLogger.error(err);
+        await ServerLogger.error(err);
       } else {
-        ServerLogger.log("New directory successfully created " + name);
+        await ServerLogger.log("New directory successfully created " + name);
       }
     });
+    return 
   };
 
   prepareData = async (req, res) => {
     const imagecontroller = new ImageController();
+    const modelController = new ModelController();
     const name = req.body.name.replace(" ", "_");
     const now = Date.now();
     let myDirectory = `${__dirname}/../../storage/board_${req.user.boardId}/Images/${name}_${now}`;
@@ -63,13 +67,13 @@ class HumanController {
       myDirectory,
       req.user.boardId
     );
-    this.makedirectory(myDirectory);
+    await this.makedirectory(myDirectory);
     for (let i = 0; i < req.files.length; i++) {
       const imagePath = `${myDirectory}/image_${i}`;
       const imageUrl = `${config.url}/board_${req.user.boardId}/Images/${name}_${now}/image_${i}`;
       fs.rename(req.files[i].path, imagePath, async (err) => {
         if (err) {
-          ServerLogger.error(err);
+          await ServerLogger.error(err);
           await this.deleteHumanbyid(human.dataValues.id);
           fs.rmdir(myDirectory, { recursive: true }, () => {});
           return res.status(500).json("Failed to add the human");
@@ -83,7 +87,15 @@ class HumanController {
         human.dataValues.id
       );
     }
-    return res.json({ msg: "data is prepared successfully and human added " });
+    await this.deleteModel(human.dataValues.boardId);
+    if (req.body.train) {
+      await modelController.createModel(req);
+      return res.json({
+        msg:
+          "data is prepared successfully and model is training we will notify you when we done",
+      });
+    }
+    return res.json({ msg: "data is prepared successfully and human added" });
   };
 
   removeHuman = async (req, res) => {
@@ -91,11 +103,14 @@ class HumanController {
     const human = await this.getHumanbyid(req.body.humanId);
     if (human) {
       await this.deleteHumanbyid(req.body.humanId);
+      await this.deleteModel(human.dataValues.boardId);
       const myDirectory = human.dataValues.dirPath;
       if (fs.existsSync(myDirectory)) {
         fs.rmdir(myDirectory, { recursive: true }, () => {});
+        await modelController.createModel(req);
         return res.json({
-          msg: "human is deleted and its images from both database and storage",
+          msg:
+            "Person is deleted successfully and model is training we will notify you when we done",
         });
       }
     }
@@ -137,6 +152,10 @@ class HumanController {
       },
     });
     return human;
+  };
+
+  deleteModel = async (boardId) => {
+    await Models.destroy({ where: { boardId: boardId } });
   };
 }
 export default HumanController;

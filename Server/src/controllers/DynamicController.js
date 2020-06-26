@@ -4,6 +4,7 @@ import UserController from "./UserController";
 import ModelController from "./ModelController";
 import ImageController from "./ImageController";
 import HumanController from "./HumanController";
+import LogController from "./LogController";
 
 const controllers = {
   HomeController,
@@ -12,6 +13,7 @@ const controllers = {
   ModelController,
   ImageController,
   HumanController,
+  LogController,
 };
 
 class DynamicController {

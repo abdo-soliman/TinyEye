@@ -10,7 +10,7 @@ module.exports = {
       return queryInterface.createTable('users', { id: Sequelize.INTEGER });
     */
     await queryInterface.createTable(
-      "server-log",
+      "server-logs",
       {
         id: {
           type: Sequelize.INTEGER,
@@ -43,6 +43,6 @@ module.exports = {
       return queryInterface.dropTable('users');
 
     */
-    return queryInterface.dropTable("server-log");
+    return queryInterface.dropTable("server-logs");
   },
 };

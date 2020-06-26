@@ -40,7 +40,7 @@ Route.post(
 
 Route.post("/push/notification", "UserController@push", [AuthMiddleware]);
 
-Route.post("/create/model", "ModelController@createModel", [AuthMiddleware]);
+Route.post("/create/model", "ModelController@trainModel", [AuthMiddleware]);
 Route.post(
   "/model/register",
   "HumanController@prepareData",
@@ -49,5 +49,10 @@ Route.post(
 Route.post("/remove/human", "HumanController@removeHuman", removeHumanRequest);
 Route.get("/humans", "HumanController@index", [AuthMiddleware]);
 Route.post("/humans/show", "HumanController@show", [AuthMiddleware]);
+
+Route.get("/log", "LogController@index", [AuthMiddleware]);
+Route.post("/log/show", "LogController@show", [AuthMiddleware]);
+Route.post("/log/markasread", "LogController@markAsRead", [AuthMiddleware]);
+Route.post("/log/delete", "LogController@delete", [AuthMiddleware]);
 
 export default router;

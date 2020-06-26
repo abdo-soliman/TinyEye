@@ -2,7 +2,7 @@ import db from "./db";
 import Sequelize from "sequelize";
 
 const ServerLog = db.define(
-  "server-log",
+  "server-logs",
   {
     type: Sequelize.STRING,
     data: Sequelize.TEXT,
