@@ -111,7 +111,7 @@ void logger::LOG_INFO(InfoCode code, std::string message)
     std::string server_log_msg = "{ \"serial\": \"" + serial + "\", ";
     server_log_msg += "\"type\": \"INFO\", ";
     server_log_msg += "\"code\": \"" + info2str(code) + "\", ";
-    server_log_msg += "\"timestamp\": " + timestamp + ", ";
+    server_log_msg += "\"timestamp\": \"" + timestamp + "\", ";
     server_log_msg += "\"message\": \"" + message + "\" }";
     server_socket.socket()->emit("LOG", server_log_msg);
 }
@@ -131,7 +131,7 @@ void logger::LOG_ERROR(ErrorCode code, std::string message)
     std::string server_log_msg = "{ \"serial\": \"" + serial + "\", ";
     server_log_msg += "\"type\": \"ERROR\", ";
     server_log_msg += "\"code\": \"" + error2str(code) + "\", ";
-    server_log_msg += "\"timestamp\": " + timestamp + ", ";
+    server_log_msg += "\"timestamp\": \"" + timestamp + "\", ";
     server_log_msg += "\"message\": \"" + message + "\" }";
     server_socket.socket()->emit("LOG", server_log_msg);
 }
@@ -151,7 +151,7 @@ void logger::LOG_WARNING(WarningCode code, std::string message)
     std::string server_log_msg = "{ \"serial\": \"" + serial + "\", ";
     server_log_msg += "\"type\": \"WARNING\", ";
     server_log_msg += "\"code\": \"" + warning2str(code) + "\", ";
-    server_log_msg += "\"timestamp\": " + timestamp + ", ";
+    server_log_msg += "\"timestamp\": \"" + timestamp + "\", ";
     server_log_msg += "\"message\": \"" + message + "\" }";
     server_socket.socket()->emit("LOG", server_log_msg);
 }
