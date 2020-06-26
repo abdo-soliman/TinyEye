@@ -10,6 +10,12 @@ export default {
     add: "model/register",
   },
   user: {
-    updateToken: "update/notification/token"
-  }
+    updateToken: "update/notification/token",
+  },
+  log: {
+    index: "log",
+    show: "log/show",
+    markAsRead: "log/markasread",
+    delete: "log/delete",
+  },
 };

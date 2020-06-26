@@ -10,6 +10,7 @@ import PersonScreen from "../screens/persons/PersonScreen";
 import LogoHeader from "../components/LogoHeader";
 import AddPersonScreen from "../screens/persons/AddPersonScreen";
 import AddPersonNameScreen from "../screens/persons/AddPersonNameScreen";
+import LogScreen from "../screens/LogScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -22,6 +23,7 @@ const HomeStack = () => {
         component={HomeScreen}
         options={{ headerTitle: (props) => <LogoHeader /> }}
       />
+      <Stack.Screen name="Log" component={LogScreen} />
     </Stack.Navigator>
   );
 };

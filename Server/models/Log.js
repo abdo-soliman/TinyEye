@@ -2,9 +2,9 @@ import db from "./db";
 import Sequelize from "sequelize";
 
 const Log = db.define(
-  "log",
+  "logs",
   {
-    iPath: Sequelize.STRING,
+    iUrl: Sequelize.STRING,
     type: Sequelize.STRING,
     readAt: Sequelize.DATE,
     personName: Sequelize.STRING,

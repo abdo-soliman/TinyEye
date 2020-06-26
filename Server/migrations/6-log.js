@@ -10,7 +10,7 @@ module.exports = {
       return queryInterface.createTable('users', { id: Sequelize.INTEGER });
     */
     await queryInterface.createTable(
-      "log",
+      "logs",
       {
         id: {
           type: Sequelize.INTEGER,
@@ -23,7 +23,7 @@ module.exports = {
         updatedAt: {
           type: Sequelize.DATE,
         },
-        iPath: Sequelize.STRING,
+        iUrl: Sequelize.STRING,
         type: Sequelize.STRING,
         personName: Sequelize.STRING,
         readAt: Sequelize.DATE,
@@ -54,6 +54,6 @@ module.exports = {
       return queryInterface.dropTable('users');
 
     */
-    return queryInterface.dropTable("log");
+    return queryInterface.dropTable("logs");
   },
 };
