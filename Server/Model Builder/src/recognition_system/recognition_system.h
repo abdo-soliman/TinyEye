@@ -9,7 +9,7 @@
 #include "logger/logger.h"
 #include "mtcnn/mtcnn.h"
 #include "classifier/svm.h"
-#include "mobilefacenet/mobilefacenet.h"
+#include "mobilefacenet/mfn.h"
 #include "mobilefacenet/dataloaders/img_loader.h"
 
 namespace tinyeye
@@ -29,7 +29,7 @@ public:
 private:
     std::pair<torch::Tensor, torch::Tensor> create_dataset(mobilefacenet::img_loader& dataset);
 
-    std::unique_ptr<mobilefacenet::MobileFacenet> mfn_net;
+    std::unique_ptr<mobilefacenet::mfn> mfn_net;
     std::unique_ptr<svm> classifier;
 
     svm_config classifier_config;

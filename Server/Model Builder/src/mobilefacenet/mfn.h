@@ -1,29 +1,29 @@
-#ifndef MOBILE_FACENET_H_H_
-#define MOBILE_FACENET_H_H_
+#ifndef MFN_H_H_
+#define MFN_H_H_
 
 #include <memory>
 #include <string>
 #include <vector>
 #include <torch/torch.h>
-#include <torch/script.h>
 #include <opencv2/opencv.hpp>
+#include "network/MobileFacenet.h"
 
 namespace tinyeye
 {
 namespace mobilefacenet
 {
-class MobileFacenet
+class mfn
 {
 public:
-    MobileFacenet(std::string model_path);
+    mfn(std::string model_path);
     torch::Tensor get_embeddings(torch::Tensor imgs);
     torch::Tensor get_embeddings(std::vector<cv::Mat>& imgs);
     torch::Tensor get_embeddings(cv::Mat& img);
 
 private:
-    torch::jit::script::Module net;
+    MobileFacenet net;
 };
-} // mobilefacenet
-} // tinyeye
+} // namespace mobilefacenet
+} // namespace tinyeye
 
 #endif

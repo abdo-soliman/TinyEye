@@ -14,7 +14,7 @@ RecognitionSystem::RecognitionSystem(std::string mtcnn_md, std::string mfn_model
     try
     {
         mfn_net.reset();
-        mfn_net = std::make_unique<mobilefacenet::MobileFacenet>(mfn_model_path);
+        mfn_net = std::make_unique<mobilefacenet::mfn>(mfn_model_path);
 
         use_mtcnn = detect;
         detector_config.models_dir = mtcnn_md;
