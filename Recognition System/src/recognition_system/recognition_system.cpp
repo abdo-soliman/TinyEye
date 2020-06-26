@@ -37,8 +37,8 @@ void RecognitionSystem::intialize(std::string mtcnn_models_dir, std::string mfn_
 
     try
     {
-        recognition_system.mfn.reset();
-        recognition_system.mfn = std::make_unique<mobilefacenet::MobileFacenet>(mfn_model_path);
+        recognition_system.mfn_net.reset();
+        recognition_system.mfn_net = std::make_unique<mobilefacenet::mfn>(mfn_model_path);
     }
     catch(const std::exception& e)
     {
@@ -71,6 +71,11 @@ void RecognitionSystem::intialize(std::string mtcnn_models_dir, std::string mfn_
 RecognitionSystem& RecognitionSystem::get()
 {
     return recognition_system;
+}
+
+void RecognitionSystem::set_frame_rate(int fr)
+{
+    get().frame_rate = fr;
 }
 
 void RecognitionSystem::recognition_loop()
@@ -118,7 +123,9 @@ void RecognitionSystem::_recognition_loop()
             frame = processing_buffer[i];
             if (i == 0)
             {
+                clock_t start = clock();
                 boxes = detector->detect(frame);
+                std::cout << "[PROCESSING] detection_time: " << (double)(clock() - start) / CLOCKS_PER_SEC << std::endl;
 
                 count = 0;
                 for (const auto& box : boxes)
@@ -144,8 +151,12 @@ void RecognitionSystem::_recognition_loop()
             {
                 for (size_t j = 0; j < trackers.size(); j++)
                 {
+                    clock_t start = clock();
                     if (trackers[j]->update(frame, bbox))
+                    {
+                        std::cout << "[PROCESSING] tracking_time: " << (double)(clock() - start) / CLOCKS_PER_SEC << std::endl;
                         faces_buffer[j].push_back(cv::Mat(frame, cv::Rect(bbox.x, bbox.y, bbox.width, bbox.height)));
+                    }
                 }
             }
         }
@@ -154,7 +165,9 @@ void RecognitionSystem::_recognition_loop()
         {
             if (!faces_buffer[i].empty())
             {
-                name = classifier->predict_block(mfn->get_embeddings(faces_buffer[i]));
+                clock_t start = clock();
+                name = classifier->predict_block(mfn_net->get_embeddings(faces_buffer[i]));
+                std::cout << "[PROCESSING] recognition_time: " << (double)(clock() - start) / CLOCKS_PER_SEC << std::endl;
                 if (name == "unknown")
                     logger::LOG_INFO(DETECTED_UNKNOWN, "detected an unknown personal");
                 else

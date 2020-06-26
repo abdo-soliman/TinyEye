@@ -14,6 +14,7 @@ int main(int argc, char **argv)
     parser.add_option("--classifier-model-path", 's', "../models/svm_model.pt", "path for classifier to classify mfn embeddings to their coresponding classes");
     parser.add_option("--classes-map-path", 's', "../models/classes_map.txt", "path for mapping file for classes and equivilent names");
     parser.add_option("--camera-ip", 's', "192.168.1.9", "ip for camera to capture video feed from it");
+    parser.add_option("--frame-rate", 'i', "3", "video feed frame rate");
 
     parser.parse(argc, argv);
 
@@ -25,10 +26,12 @@ int main(int argc, char **argv)
     std::string classifier_model_path = parser.get_option<std::string>("--classifier-model-path");
     std::string classes_map_path = parser.get_option<std::string>("--classes-map-path");
     std::string camera_ip = parser.get_option<std::string>("--camera-ip");
+    int frame_rate = parser.get_option<int>("--frame-rate");
 
     tinyeye::logger::setup_server_socket(server_url);
     tinyeye::RecognitionSystem::intialize(mtcnn_models_dir, mfn_model_path, 128, num_classes,
                                           classifier_model_path, classes_map_path, camera_ip);
+    tinyeye::RecognitionSystem::set_frame_rate(frame_rate);
 
     std::thread t1(&tinyeye::RecognitionSystem::camera_loop);
     std::thread t2(&tinyeye::RecognitionSystem::recognition_loop);

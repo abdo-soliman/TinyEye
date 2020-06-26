@@ -1,4 +1,4 @@
-#include "mobilefacenet.h"
+#include "mfn.h"
 
 #include <iostream>
 
@@ -9,12 +9,12 @@ namespace tinyeye
 {
 namespace mobilefacenet
 {
-MobileFacenet::MobileFacenet(std::string model_path)
+mfn::mfn(std::string model_path)
 {
     try
     {
-        net = torch::jit::load(model_path);
-        net.eval();
+        torch::load(net, model_path);
+        net->eval();
     }
     catch (const c10::Error &e)
     {
@@ -23,17 +23,13 @@ MobileFacenet::MobileFacenet(std::string model_path)
     }
 }
 
-torch::Tensor MobileFacenet::get_embeddings(torch::Tensor imgs)
+torch::Tensor mfn::get_embeddings(torch::Tensor imgs)
 {
-    std::vector<torch::jit::IValue> inputs;
-    inputs.push_back(imgs);
-
-    return net.forward(inputs).toTensor();
+    return net->forward(imgs);
 }
 
-torch::Tensor MobileFacenet::get_embeddings(std::vector<cv::Mat> &imgs)
+torch::Tensor mfn::get_embeddings(std::vector<cv::Mat>& imgs)
 {
-    std::vector<torch::jit::IValue> inputs;
     torch::Tensor imgs_tensor, temp;
     int index = 1;
     for (auto &img : imgs)
@@ -49,19 +45,16 @@ torch::Tensor MobileFacenet::get_embeddings(std::vector<cv::Mat> &imgs)
         }
         index++;
     }
-    inputs.push_back(imgs_tensor);
 
-    return net.forward(inputs).toTensor();
+    return net->forward(imgs_tensor);
 }
 
-torch::Tensor MobileFacenet::get_embeddings(cv::Mat &img)
+torch::Tensor mfn::get_embeddings(cv::Mat& img)
 {
-    std::vector<torch::jit::IValue> inputs;
     auto img_tensor = img_loader::img_to_tensor(img);
     img_tensor = img_tensor.view({1, 3, config.image_height, config.image_width});
-    inputs.push_back(img_tensor);
 
-    return net.forward(inputs).toTensor();
+    return net->forward(img_tensor);
 }
 } // namespace mobilefacenet
 } // namespace tinyeye
