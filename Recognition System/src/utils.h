@@ -3,9 +3,13 @@
 
 #include <string>
 #include <vector>
+#include <random>
+#include <chrono>
 #include <fstream>
 #include <iostream>
+#include <dirent.h>
 #include <algorithm>
+#include <sys/types.h>
 
 class utils
 {
@@ -125,6 +129,68 @@ public:
         {
             result.replace(n, to_replace.size(), replacement);
             n += replacement.size();
+        }
+
+        return result;
+    }
+
+    /**
+     * @param   std::vector<T>&
+     * @return  void
+     * A utility function that shuffles a vector
+     */
+    template <typename T>
+    static void shuffle_vec(std::vector<T> &vec)
+    {
+        unsigned seed = std::chrono::system_clock::now()
+                            .time_since_epoch()
+                            .count();
+        shuffle(vec.begin(), vec.end(), std::default_random_engine(seed));
+    }
+
+    /**
+     * @param   std::string
+     * @return  std::vector<std::string>
+     * A utility function that obtians all files paths in a directory
+     */
+    static std::vector<std::string> list_dir(const std::string& name)
+    {
+        std::vector<std::string> v;
+        DIR* dirp = opendir(name.c_str());
+        struct dirent * dp;
+        std::string file_name;
+        while ((dp = readdir(dirp)) != NULL) {
+            file_name = dp->d_name;
+            if (file_name == "." || file_name == "..")
+                continue;
+            v.push_back(name + '/' + file_name);
+        }
+        closedir(dirp);
+
+        return v;
+    }
+
+    static std::string random_string(int length)
+    {
+        std::string str("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
+
+        unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+        shuffle(str.begin(), str.end(), std::default_random_engine(seed));
+
+        std::string result = "";
+        if (length < str.size())
+            result += str.substr(0, length);
+        else if (length == str.size())
+            result = str;
+        else
+        {
+            while (length > 0)
+            {
+                result += str.substr(0, length);
+                length -= str.size();
+                seed = std::chrono::system_clock::now().time_since_epoch().count();
+                shuffle(str.begin(), str.end(), std::default_random_engine(seed));
+            }
         }
 
         return result;

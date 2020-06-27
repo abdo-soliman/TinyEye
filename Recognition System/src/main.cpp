@@ -8,11 +8,11 @@ int main(int argc, char **argv)
     tinyeye::ArgumentParser parser;
     parser.add_option("--core-log-path", 's', "~/tinyeye-core.log", "path for log file path");
     parser.add_option("--server-url", 's', "http://localhost:3000", "remote server url to send notifications to it");
-    parser.add_option("--mtcnn-models-dir", 's', "../models/mtcnn", "MTCNN face detection framework Models dir");
-    parser.add_option("--mfn-model-path", 's', "../models/mobilefacenet.pt", "MobileFacenet Model Path");
+    parser.add_option("--mtcnn-models-dir", 's', "../../models/mtcnn", "MTCNN face detection framework Models dir");
+    parser.add_option("--mfn-model-path", 's', "../../models/mobilefacenet.pt", "MobileFacenet Model Path");
     parser.add_option("--num-classes", 'i', "5", "number of people that could be identified as known");
-    parser.add_option("--classifier-model-path", 's', "../models/svm_model.pt", "path for classifier to classify mfn embeddings to their coresponding classes");
-    parser.add_option("--classes-map-path", 's', "../models/classes_map.txt", "path for mapping file for classes and equivilent names");
+    parser.add_option("--classifier-model-path", 's', "../../models/svm_model.pt", "path for classifier to classify mfn embeddings to their coresponding classes");
+    parser.add_option("--classes-map-path", 's', "../../models/classes_map.txt", "path for mapping file for classes and equivilent names");
     parser.add_option("--camera-ip", 's', "192.168.1.9", "ip for camera to capture video feed from it");
     parser.add_option("--frame-rate", 'i', "3", "video feed frame rate");
 
