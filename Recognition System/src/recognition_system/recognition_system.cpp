@@ -133,6 +133,7 @@ void RecognitionSystem::_recognition_loop()
             else
                 logger::LOG_INFO(DETECTED_KNOWN, name + " was detected");
 
+            imgs.clear();
             command = "rm -rf " + dir_name;
             system(command.c_str());
         }
