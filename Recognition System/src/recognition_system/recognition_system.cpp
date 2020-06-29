@@ -76,6 +76,11 @@ void RecognitionSystem::set_frame_rate(int fr)
     get().frame_rate = fr;
 }
 
+void RecognitionSystem::set_max_imgs_per_temp(int max_per_temp)
+{
+    get().max_imgs_per_temp = max_per_temp;
+}
+
 void RecognitionSystem::set_temp_dir(std::string path)
 {
     get().temp_dir = path;

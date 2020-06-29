@@ -24,6 +24,7 @@ public:
                           int in_features, int out_features, std::string classifier_model_path,
                           std::string classifier_map_path, std::string camera_ip);
     static void set_frame_rate(int fr);
+    static void set_max_imgs_per_temp(int max_per_temp);
     static void set_temp_dir(std::string path);
     static RecognitionSystem& get();
     static void camera_loop();
