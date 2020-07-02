@@ -55,6 +55,9 @@ std::string logger::error2str(ErrorCode code)
     case FAILED_TO_INTIALIZE_CLASSIFIER:
         return "FAILED_TO_INTIALIZE_CLASSIFIER";
         break;
+    case FAILED_TO_CREATE_TEMP_DIR:
+        return "FAILED_TO_CREATE_TEMP_DIR";
+        break;
     case UNKNOWN:
         return "UNKNOWN";
         break;

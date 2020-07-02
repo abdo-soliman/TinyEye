@@ -9,6 +9,7 @@
 #include <iostream>
 #include <dirent.h>
 #include <algorithm>
+#include <sys/stat.h>
 #include <sys/types.h>
 
 class utils
@@ -146,6 +147,24 @@ public:
                             .time_since_epoch()
                             .count();
         shuffle(vec.begin(), vec.end(), std::default_random_engine(seed));
+    }
+
+    /**
+     * @param   std::string
+     * @return  bool
+     * A utility function that takes a string directory path and check if the directory exist
+     */
+    static bool is_dir(std::string dir_path)
+    {
+        struct stat info;
+
+        if (stat(dir_path.c_str(), &info) != 0)
+            return false;
+
+        if (info.st_mode & S_IFDIR)
+            return true;
+
+        return false;
     }
 
     /**

@@ -34,13 +34,13 @@ int main(int argc, char **argv)
 
     tinyeye::logger::setup_server_socket(server_url);
     tinyeye::RecognitionSystem::intialize(mtcnn_models_dir, mfn_model_path, 128, num_classes,
-                                          classifier_model_path, classes_map_path, camera_ip);
+                                          classifier_model_path, classes_map_path, camera_ip, temp_dir_path);
     tinyeye::RecognitionSystem::set_frame_rate(frame_rate);
     tinyeye::RecognitionSystem::set_max_imgs_per_temp(max_per_temp);
-    tinyeye::RecognitionSystem::set_temp_dir(temp_dir_path);
 
     std::thread t1(&tinyeye::RecognitionSystem::camera_loop);
-    std::thread t2(&tinyeye::RecognitionSystem::recognition_loop);
+    std::thread t2(&tinyeye::RecognitionSystem::detection_loop);
+    std::thread t3(&tinyeye::RecognitionSystem::recognition_loop);
 
     t1.join();
 

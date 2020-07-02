@@ -17,7 +17,7 @@ RecognitionSystem::RecognitionSystem()
 
 void RecognitionSystem::intialize(std::string mtcnn_models_dir, std::string mfn_model_path,
                                   int in_features, int out_features, std::string classifier_model_path,
-                                  std::string classifier_map_path, std::string camera_ip)
+                                  std::string classifier_map_path, std::string camera_ip, std::string temp_dir_path)
 {
     try
     {
@@ -64,6 +64,27 @@ void RecognitionSystem::intialize(std::string mtcnn_models_dir, std::string mfn_
     }
 
     recognition_system.ip = camera_ip;
+    recognition_system.temp_dir = temp_dir_path;
+    recognition_system.camera_temp_dir = temp_dir_path + "/camera";
+    recognition_system.recognition_temp_dir = temp_dir_path + "/recognition";
+
+    std::string command = "mkdir -p " + recognition_system.camera_temp_dir;
+    system(command.c_str());
+    if(!utils::is_dir(recognition_system.camera_temp_dir))
+    {
+        std::string msg = "can't create camera temp directory at: " + recognition_system.camera_temp_dir + " please make sure correct path and privded and write permissions are set";
+        logger::LOG_ERROR(FAILED_TO_CREATE_TEMP_DIR, msg);
+        throw std::runtime_error(msg);
+    }
+
+    command = "mkdir -p " + recognition_system.recognition_temp_dir;
+    system(command.c_str());
+    if(!utils::is_dir(recognition_system.recognition_temp_dir))
+    {
+        std::string msg = "can't create camera temp directory at: " + recognition_system.recognition_temp_dir + " please make sure correct path and privded and write permissions are set";
+        logger::LOG_ERROR(FAILED_TO_CREATE_TEMP_DIR, msg);
+        throw std::runtime_error(msg);
+    }
 }
 
 RecognitionSystem& RecognitionSystem::get()
@@ -81,14 +102,14 @@ void RecognitionSystem::set_max_imgs_per_temp(int max_per_temp)
     get().max_imgs_per_temp = max_per_temp;
 }
 
-void RecognitionSystem::set_temp_dir(std::string path)
-{
-    get().temp_dir = path;
-}
-
 void RecognitionSystem::recognition_loop()
 {
     get()._recognition_loop();
+}
+
+void RecognitionSystem::detection_loop()
+{
+    get()._detection_loop();
 }
 
 void RecognitionSystem::camera_loop()
@@ -145,6 +166,108 @@ void RecognitionSystem::_recognition_loop()
     }
 }
 
+void RecognitionSystem::_detection_loop()
+{
+    bool empty_queue;
+    std::string dir_name, command;
+    std::vector<std::string> img_paths;
+    std::vector<cv::Mat> frames;
+
+    cv::Mat frame, face;
+    cv::Rect2d bbox;
+    cv::Rect2d* bbox_ptr;
+
+    std::list<cv::Rect2d> correct_boxes;
+
+    while (true)
+    {
+        {
+            const std::lock_guard<std::mutex> lock(unprocessed_dirs_mutex);
+            empty_queue = unprocessed_dirs.empty();
+        }
+
+        if (empty_queue)
+            usleep(1000/frame_rate);
+        else
+        {
+            {
+                const std::lock_guard<std::mutex> lock(unprocessed_dirs_mutex);
+                dir_name = unprocessed_dirs.front();
+                unprocessed_dirs.pop();
+            }
+
+            if (dir_name == "")
+                continue;
+
+            img_paths = utils::list_dir(dir_name);
+            for (const auto& img_path : img_paths)
+                frames.push_back(cv::imread(img_path));
+
+            for (size_t i = 0; i < frames.size(); i++)
+            {
+                if (i == 0)
+                {
+                    clock_t start = clock();
+                    correct_boxes = detector->detect_rects(frames[i], 0.97);
+                    std::cout << "[PROCESSING] detection_time: " << (double)(clock() - start) / CLOCKS_PER_SEC << std::endl;
+
+                    for (auto& tracker : trackers)
+                    {
+                        int overlaps = 0;
+                        for (auto& box : correct_boxes)
+                        {
+                            if (overlaping(box, trackers_current_box[tracker]))
+                            {
+                                bbox_ptr = &box;
+                                overlaps++;
+                            }
+                        }
+
+                        if (overlaps != 1)
+                        {
+                            tracker_done[tracker] = true;
+                            to_delete.push_back(tracker);
+                            std::cout << "[PROCESSING] done overlapping" << std::endl;
+                        }
+                        else
+                            correct_boxes.remove(*bbox_ptr);
+                    }
+
+                    for (auto& box : correct_boxes)
+                        allocate_tracker(frames[i], box);
+                }
+                else
+                    update_trackers(frames[i]);
+                
+                for (auto& tracker : trackers)
+                {
+                    if (tracker_done[tracker] && !tracker_processed[tracker])
+                    {
+                        const std::lock_guard<std::mutex> lock(processing_dirs_mutex);
+                        processing_dirs.push(trackers_dirs_map[tracker].first);
+                        tracker_processed[tracker] = true;
+                    }
+                }
+
+                for (auto& tracker : to_delete)
+                {
+                    trackers_current_box.erase(tracker);
+                    trackers_dirs_map.erase(tracker);
+                    tracker_done.erase(tracker);
+                    tracker_processed.erase(tracker);
+                    trackers.remove(tracker);
+                    std::cout << "[PROCESSING] deleting useless trackers" << std::endl;
+                }
+                to_delete.clear();
+            }
+
+            frames.clear();
+            command = "rm -rf " + dir_name;
+            system(command.c_str());
+        }
+    }
+}
+
 void RecognitionSystem::_camera_loop()
 {
     // Read video
@@ -158,16 +281,10 @@ void RecognitionSystem::_camera_loop()
         return;
     }
 
-    cv::Mat frame, face;
-    cv::Rect2d bbox;
-    cv::Rect2d* bbox_ptr;
+    cv::Mat frame;
 
-    std::list<cv::Rect2d> correct_boxes;
-    std::vector<tracker_ptr> to_delete;
-
-    std::string dir_name;
-    int count = -1;
-    int x1, y1, width, height, num_files;
+    std::string dir_name, command;
+    int count = 0;
     while (true)
     {
         if (!cap.read(frame))
@@ -178,95 +295,28 @@ void RecognitionSystem::_camera_loop()
 
         cv::rotate(frame, frame, cv::ROTATE_90_COUNTERCLOCKWISE);
 
-        if (++count == frame_rate)
-            count = 0;
+        if (++count > frame_rate)
+            count = 1;
 
-        if (count == 0)
+        if (count == 1)
         {
-            clock_t start = clock();
-            correct_boxes = detector->detect_rects(frame, 0.97);
-            std::cout << "[PROCESSING] detection_time: " << (double)(clock() - start) / CLOCKS_PER_SEC << std::endl;
+            dir_name = camera_temp_dir + "/" + utils::random_string(camera_dir_name_length);
+            while (utils::is_dir(dir_name))
+                dir_name = camera_temp_dir + "/" + utils::random_string(camera_dir_name_length);
 
-            for (auto& tracker : trackers)
-            {
-                int overlaps = 0;
-                for (auto& box : correct_boxes)
-                {
-                    if (overlaping(box, trackers_current_box[tracker]))
-                    {
-                        bbox_ptr = &box;
-                        overlaps++;
-                    }
-                }
-
-                if (overlaps != 1)
-                {
-                    tracker_done[tracker] = true;
-                    to_delete.push_back(tracker);
-                    std::cout << "[PROCESSING] done overlapping" << std::endl;
-                }
-                else
-                    correct_boxes.remove(*bbox_ptr);
-            }
-
-            for (auto& box : correct_boxes)
-                allocate_tracker(frame, box);
-        }
-        else
-        {
-            for (auto& tracker : trackers)
-            {
-                clock_t start = clock();
-                if (tracker->update(frame, bbox))
-                {
-                    std::cout << "[PROCESSING] tracking_time: " << (double)(clock() - start) / CLOCKS_PER_SEC << std::endl;
-                    trackers_current_box[tracker] = bbox;
-                    if (!tracker_done[tracker])
-                    {
-                        dir_name = trackers_dirs_map[tracker].first;
-                        num_files = trackers_dirs_map[tracker].second;
-
-                        face = cv::Mat(frame, cv::Rect(bbox.x, bbox.y, bbox.width, bbox.height));
-                        cv::imwrite(dir_name + "/" + std::to_string(num_files) + ".jpg", face);
-
-                        trackers_dirs_map[tracker] = std::make_pair(dir_name, ++num_files);
-
-                        if (num_files >= max_imgs_per_temp)
-                        {
-                            tracker_done[tracker] = true;
-                            std::cout << "[PROCESSING] done max imgs count" << std::endl;
-                        }
-                    }
-                }
-                else
-                {
-                    tracker_done[tracker] = true;
-                    to_delete.push_back(tracker);
-                    std::cout << "[PROCESSING] done out of frame" << std::endl;
-                }
-            }
+            command = "mkdir " + dir_name;
+            system(command.c_str());
         }
 
-        for (auto& tracker : trackers)
+        cv::imwrite(dir_name + "/" + std::to_string(count) + ".jpg", frame);
+
+        if (count == frame_rate)
         {
-            if (tracker_done[tracker] && !tracker_processed[tracker])
-            {
-                const std::lock_guard<std::mutex> lock(processing_dirs_mutex);
-                processing_dirs.push(trackers_dirs_map[tracker].first);
-                tracker_processed[tracker] = true;
-            }
+            const std::lock_guard<std::mutex> lock(unprocessed_dirs_mutex);
+            unprocessed_dirs.push(dir_name);
         }
 
-        for (auto& tracker : to_delete)
-        {
-            trackers_current_box.erase(tracker);
-            trackers_dirs_map.erase(tracker);
-            tracker_done.erase(tracker);
-            tracker_processed.erase(tracker);
-            trackers.remove(tracker);
-            std::cout << "[PROCESSING] deleting useless trackers" << std::endl;
-        }
-        to_delete.clear();
+        cv::waitKey(1000/frame_rate);
     }
 }
 
@@ -299,19 +349,9 @@ void RecognitionSystem::allocate_tracker(const cv::Mat& frame, const cv::Rect2d&
     tracker_done.insert(std::make_pair(tracker, false));
     tracker_processed.insert(std::make_pair(tracker, false));
 
-    std::string dir_name;
-    bool used = true;
-    while (used)
-    {
-        dir_name = temp_dir + "/" + utils::random_string(dir_name_length);
-
-        used = false;
-        for (const auto& tracker_dir : trackers_dirs_map)
-        {
-            if (tracker_dir.second.first == dir_name)
-                used = true;
-        }
-    }
+    std::string dir_name = recognition_temp_dir + "/" + utils::random_string(recognition_dir_name_length);
+    while (utils::is_dir(dir_name))
+        dir_name = recognition_temp_dir + "/" + utils::random_string(recognition_dir_name_length);
 
     std::string command = "mkdir " + dir_name;
     system(command.c_str());
@@ -320,5 +360,45 @@ void RecognitionSystem::allocate_tracker(const cv::Mat& frame, const cv::Rect2d&
     cv::imwrite(dir_name + "/0.jpg", face);
 
     trackers_dirs_map.insert(std::make_pair(tracker, std::make_pair(dir_name, 1)));
+}
+
+void RecognitionSystem::update_trackers(const cv::Mat& frame)
+{
+    int num_files;
+    std::string dir_name;
+
+    cv::Mat face;
+    cv::Rect2d bbox;
+    for (auto& tracker : trackers)
+    {
+        clock_t start = clock();
+        if (tracker->update(frame, bbox))
+        {
+            std::cout << "[PROCESSING] tracking_time: " << (double)(clock() - start) / CLOCKS_PER_SEC << std::endl;
+            trackers_current_box[tracker] = bbox;
+            if (!tracker_done[tracker])
+            {
+                dir_name = trackers_dirs_map[tracker].first;
+                num_files = trackers_dirs_map[tracker].second;
+
+                face = cv::Mat(frame, cv::Rect(bbox.x, bbox.y, bbox.width, bbox.height));
+                cv::imwrite(dir_name + "/" + std::to_string(num_files) + ".jpg", face);
+
+                trackers_dirs_map[tracker] = std::make_pair(dir_name, ++num_files);
+
+                if (num_files >= max_imgs_per_temp)
+                {
+                    tracker_done[tracker] = true;
+                    std::cout << "[PROCESSING] done max imgs count" << std::endl;
+                }
+            }
+        }
+        else
+        {
+            tracker_done[tracker] = true;
+            to_delete.push_back(tracker);
+            std::cout << "[PROCESSING] done out of frame" << std::endl;
+        }
+    }
 }
 } // namespace tinyeye
