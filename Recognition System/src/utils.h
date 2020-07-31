@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <opencv2/opencv.hpp>
 
 class utils
 {
@@ -189,6 +190,11 @@ public:
         return v;
     }
 
+    /**
+     * @param   int
+     * @return  std::string
+     * A utility function that generates a random alpha numeric string of any given length
+     */
     static std::string random_string(int length)
     {
         std::string str("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
@@ -213,6 +219,71 @@ public:
         }
 
         return result;
+    }
+
+    /**
+     * @param   const cv::Mat&, std::string
+     * @return  std::string
+     * A utility function that takes a opencv Mat object and return it's base64 string equivalent
+     */
+    static std::string img2base64(const cv::Mat &img, std::string img_type="jpg")
+    {
+        //Mat to base64
+        std::string img_data;
+        std::vector<uchar> vecImg;
+
+        std::vector<int> vecCompression_params;
+        vecCompression_params.push_back(cv::IMWRITE_JPEG_QUALITY);
+        vecCompression_params.push_back(90);
+
+        img_type = "." + img_type;
+        cv::imencode(img_type, img, vecImg, vecCompression_params);
+        img_data = base64_encode(vecImg.data(), vecImg.size());
+
+        return img_data;
+    }
+
+private:
+    static std::string base64_encode(const unsigned char* data, int data_byte)
+    {
+        // code table
+        const char symbol_table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+            //return value 
+        std::string str_encode;
+        unsigned char temp[4] = { 0 };
+        int line_length = 0;
+        for (int i = 0; i < (int)(data_byte / 3); i++)
+        {
+            temp[1] = *data++;
+            temp[2] = *data++;
+            temp[3] = *data++;
+            str_encode += symbol_table[temp[1] >> 2];
+            str_encode += symbol_table[((temp[1] << 4) | (temp[2] >> 4)) & 0x3F];
+            str_encode += symbol_table[((temp[2] << 2) | (temp[3] >> 6)) & 0x3F];
+            str_encode += symbol_table[temp[3] & 0x3F];
+            if (line_length += 4, line_length == 76) { line_length = 0; }
+        }
+
+        // Encode the remaining data
+        int mod = data_byte % 3;
+        if (mod == 1)
+        {
+            temp[1] = *data++;
+            str_encode += symbol_table[(temp[1] & 0xFC) >> 2];
+            str_encode += symbol_table[((temp[1] & 0x03) << 4)];
+            str_encode += "==";
+        }
+        else if (mod == 2)
+        {
+            temp[1] = *data++;
+            temp[2] = *data++;
+            str_encode += symbol_table[(temp[1] & 0xFC) >> 2];
+            str_encode += symbol_table[((temp[1] & 0x03) << 4) | ((temp[2] & 0xF0) >> 4)];
+            str_encode += symbol_table[((temp[2] & 0x0F) << 2)];
+            str_encode += "=";
+        }
+    
+        return str_encode;
     }
 };
 
