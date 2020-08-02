@@ -88,7 +88,7 @@ class ModelController {
     });
   };
 
-  traiingnModel = async (req, myDirectory, delimiter, boardId) => {
+  trainingModel = async (req, myDirectory, delimiter, boardId) => {
     if (!fs.existsSync(myDirectory + "/models")) {
       this.makedirectory(myDirectory + "/models");
     }
@@ -177,7 +177,7 @@ class ModelController {
       );
       this.mappingToFile(images, myDirectory, index, delimiter);
     });
-    await this.traiingnModel(req, myDirectory, delimiter, req.user.boardId);
+    await this.trainingModel(req, myDirectory, delimiter, req.user.boardId);
   };
 
   trainModel = async (req, res) => {
