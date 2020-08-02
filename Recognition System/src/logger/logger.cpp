@@ -9,7 +9,7 @@ namespace tinyeye
 std::ofstream logger::logfile;
 std::string logger::logfile_path;
 sio::client logger::server_socket;
-std::string logger::serial = "a8710984-325f-4af3-9c57-d8b84ac39c3e";
+std::string logger::serial = "board-a8710984-325f-4af3-9c57-d8b84ac39c3e";
 
 void logger::set_logfile_path(std::string path) { logfile_path = path; }
 void logger::setup_server_socket(std::string url) { server_socket.connect(url); }
@@ -99,7 +99,7 @@ std::string logger::info2str(InfoCode code)
     }
 }
 
-void logger::LOG_INFO(InfoCode code, std::string message)
+void logger::LOG_INFO(InfoCode code, std::string message, std::string ref)
 {
     if (!logfile.is_open())
         logfile.open(logfile_path.c_str(), std::ios_base::app);
@@ -115,8 +115,12 @@ void logger::LOG_INFO(InfoCode code, std::string message)
     server_log_msg += "\"type\": \"INFO\", ";
     server_log_msg += "\"code\": \"" + info2str(code) + "\", ";
     server_log_msg += "\"timestamp\": \"" + timestamp + "\", ";
+
+    if (ref != "")
+        server_log_msg += "\"ref\": \"" + ref + "\", ";
+
     server_log_msg += "\"message\": \"" + message + "\" }";
-    server_socket.socket()->emit("LOG", server_log_msg);
+    server_socket.socket("/" + serial)->emit(serial, server_log_msg);
 }
 
 void logger::LOG_ERROR(ErrorCode code, std::string message)
@@ -136,7 +140,7 @@ void logger::LOG_ERROR(ErrorCode code, std::string message)
     server_log_msg += "\"code\": \"" + error2str(code) + "\", ";
     server_log_msg += "\"timestamp\": \"" + timestamp + "\", ";
     server_log_msg += "\"message\": \"" + message + "\" }";
-    server_socket.socket()->emit("LOG", server_log_msg);
+    server_socket.socket("/" + serial)->emit(serial, server_log_msg);
 }
 
 void logger::LOG_WARNING(WarningCode code, std::string message)
@@ -156,6 +160,6 @@ void logger::LOG_WARNING(WarningCode code, std::string message)
     server_log_msg += "\"code\": \"" + warning2str(code) + "\", ";
     server_log_msg += "\"timestamp\": \"" + timestamp + "\", ";
     server_log_msg += "\"message\": \"" + message + "\" }";
-    server_socket.socket()->emit("LOG", server_log_msg);
+    server_socket.socket("/" + serial)->emit(serial, server_log_msg);
 }
 } //namespace tinyeye

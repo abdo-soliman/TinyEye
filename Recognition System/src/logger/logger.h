@@ -51,7 +51,7 @@ public:
     static std::string warning2str(WarningCode code);
     static std::string info2str(InfoCode type);
 
-    static void LOG_INFO(InfoCode code, std::string message);
+    static void LOG_INFO(InfoCode code, std::string message, std::string ref="");
     static void LOG_ERROR(ErrorCode code, std::string message);
     static void LOG_WARNING(WarningCode code, std::string message);
 

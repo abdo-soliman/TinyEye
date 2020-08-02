@@ -119,6 +119,8 @@ void RecognitionSystem::camera_loop()
 
 void RecognitionSystem::_recognition_loop()
 {
+    cv::Mat ref_frame;
+
     bool empty_queue = true;
     std::string name;
     std::string command;
@@ -147,17 +149,23 @@ void RecognitionSystem::_recognition_loop()
 
             img_paths = utils::list_dir(dir_name);
             for (const auto& img_path : img_paths)
-                imgs.push_back(cv::imread(img_path));
+            {
+                if (img_path.substr(img_path.size() - 7) == "ref.jpg")
+                    ref_frame = cv::imread(img_path);
+                else
+                    imgs.push_back(cv::imread(img_path));
+            }
 
             clock_t start = clock();
             name = classifier->predict_block(mfn_net->get_embeddings(imgs));
             std::cout << "[PREDICTION] recognition_time: " << (double)(clock() - start) / CLOCKS_PER_SEC << std::endl;
             std::cout << "[PREDICTION] " << name << std::endl;
 
+            std::string base64_ref = utils::img2base64(ref_frame);
             if (name == "unknown")
-                logger::LOG_INFO(DETECTED_UNKNOWN, "unknown personal detected");
+                logger::LOG_INFO(DETECTED_UNKNOWN, "unknown personal detected", base64_ref);
             else
-                logger::LOG_INFO(DETECTED_KNOWN, name + " was detected");
+                logger::LOG_INFO(DETECTED_KNOWN, name + " was detected", base64_ref);
 
             imgs.clear();
             command = "rm -rf " + dir_name;
@@ -357,6 +365,7 @@ void RecognitionSystem::allocate_tracker(const cv::Mat& frame, const cv::Rect2d&
     system(command.c_str());
 
     auto face = cv::Mat(frame, cv::Rect(box.x, box.y, box.width, box.height));
+    cv::imwrite(dir_name + "/ref.jpg", frame);
     cv::imwrite(dir_name + "/0.jpg", face);
 
     trackers_dirs_map.insert(std::make_pair(tracker, std::make_pair(dir_name, 1)));
