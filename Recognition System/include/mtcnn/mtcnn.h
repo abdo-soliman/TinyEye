@@ -4,7 +4,6 @@
 // remove or comment the following line if you are using CUDA
 #define CPU_ONLY 1
 
-#include <list>
 #include <caffe/caffe.hpp>
 #include <opencv2/opencv.hpp>
 using cv::Mat;
@@ -47,7 +46,6 @@ public:
     static Mat scale_image(Mat image, double scale);
     MTCNN(const std::string &models_dir, float thresholds[2] = NULL, uint32_t min_fs = 50, double sf = 0.709);
     vector<Bbox> detect(Mat img);
-    std::list<cv::Rect2d> detect_rects(Mat img, float threshold=-1);
     vector<Mat> detect_faces(Mat image, float threshold=-1);
     void detect_draw(Mat &img);
 

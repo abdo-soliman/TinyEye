@@ -7,19 +7,11 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 set(CMAKE_PREFIX_PATH "")
 
-option(USE_TORCH "Build with Pytorch" ON)
-option(USE_TENSORFLOW "Build with tensorflow" OFF)
+list(APPEND CMAKE_PREFIX_PATH $ENV{LIB_TORCH_PATH}) # added for libtorch
+list(APPEND CMAKE_PREFIX_PATH $ENV{LIB_CAFFE_PATH}) # added for libcaffe
 
-if (USE_TORCH)
-	list(APPEND CMAKE_PREFIX_PATH $ENV{LIB_TORCH_PATH})
-	set(USE_TENSORFLOW OFF) # make sure that no one accidentally enable both libraries
-endif()
-
-if (USE_TENSORFLOW)
-	set(USE_PYTORCH OFF) # make sure that no one accidentally enable both libraries
-	set(TFLITE_LIB "$ENV{LIB_TENSORFLOW_PATH}/lib/libtensorflow-lite.a")
-	set(TFLITE_INC "$ENV{LIB_TENSORFLOW_PATH}/include")
-endif()
+set(SOCKETIO_LIB "$ENV{LIB_SOCKET_IO_PATH}/lib/libsioclient.so")
+set(SOCKETIO_INC "$ENV{LIB_SOCKET_IO_PATH}/include")
 
 cmake_policy(SET CMP0069 NEW)
 # Enable Link-Time Optimization, AKA Inter-Procedure Optimization

@@ -1,93 +1,48 @@
-#include <iostream>
-
-#include "mtcnn/mtcnn.h"
-#include "classifier/svm.h"
-#include "mobilefacenet/config.h"
-#include "mobilefacenet/mobilefacenet.h"
-#include "mobilefacenet/dataloaders/img_loader.h"
-using namespace tinyeye::mtcnn;
-using namespace tinyeye::mobilefacenet;
-
-std::pair<torch::Tensor, torch::Tensor> create_dataset(std::string map_filepath, MobileFacenet& net, int batch_size)
-{
-    auto dataset = img_loader(map_filepath);
-    long size = dataset.size().value();
-
-    auto loader = torch::data::make_data_loader<torch::data::samplers::SequentialSampler>(
-        std::move(dataset.map(torch::data::transforms::Stack<>())), batch_size);
-
-    torch::Tensor labels;
-    torch::Tensor embeddings;
-    int index = 0;
-    int current_batch_size = 0;
-    for (auto& batch : *loader)
-    {
-        auto data = batch.data.to(config.device);
-        auto targets = batch.target.to(config.device).view({-1});
-        current_batch_size = targets.sizes()[0];
-
-        auto current_embeddings = net.get_embeddings(data);
-
-        if (index == 0)
-        {
-            embeddings = current_embeddings;
-            labels = targets;
-        }
-        else if (batch_size*(index+1) >= size)
-        {
-            embeddings = torch::cat({embeddings, current_embeddings}).view({size, 128}).to(torch::kFloat);
-            labels = torch::cat({labels, targets}).view({size}).to(torch::kLong);
-        }
-        else
-        {
-            embeddings = torch::cat({embeddings, current_embeddings}).view({(index+1)*current_batch_size, 128}).to(torch::kFloat);
-            labels = torch::cat({labels, targets}).view({(index+1)*current_batch_size}).to(torch::kLong);
-        }
-
-        index++;
-    }
-
-    return std::make_pair(embeddings, labels);
-}
+#include <thread>
+#include "logger/logger.h"
+#include "argparser/argparser.h"
+#include "recognition_system/recognition_system.h"
 
 int main(int argc, char **argv)
 {
-    MobileFacenet net("../../models/mobilefacenet.pt");
+    tinyeye::ArgumentParser parser;
+    parser.add_option("--core-log-path", 's', "~/tinyeye-core.log", "path for log file path");
+    parser.add_option("--server-url", 's', "http://localhost:3000", "remote server url to send notifications to it");
+    parser.add_option("--mtcnn-models-dir", 's', "../../models/mtcnn", "MTCNN face detection framework Models dir");
+    parser.add_option("--mfn-model-path", 's', "../../models/mobilefacenet.pt", "MobileFacenet Model Path");
+    parser.add_option("--num-classes", 'i', "5", "number of people that could be identified as known");
+    parser.add_option("--classifier-model-path", 's', "../../models/svm_model.pt", "path for classifier to classify mfn embeddings to their coresponding classes");
+    parser.add_option("--classes-map-path", 's', "../../models/classes_map.txt", "path for mapping file for classes and equivilent names");
+    parser.add_option("--camera-ip", 's', "192.168.1.9", "ip for camera to capture video feed from it");
+    parser.add_option("--frame-rate", 'i', "5", "video feed frame rate");
+    parser.add_option("--max-imgs-per-temp", 'i', "5", "number of images stored per person for recognition");
+    parser.add_option("--temp-dir", 's', "~/tinyeye_temp", "path for temp directory to store detection results for later recognition");
 
-    auto svm_model = tinyeye::svm(128, 9);
-    svm_model.construct_map("../../models/classes_map.txt");
-    svm_model.load("../../models/svm_model.pt");
+    parser.parse(argc, argv);
 
-    MTCNN detector("../../models/mtcnn");
+    tinyeye::logger::set_logfile_path(parser.get_option<std::string>("--core-log-path"));
+    std::string server_url = parser.get_option<std::string>("--server-url");
+    std::string mtcnn_models_dir = parser.get_option<std::string>("--mtcnn-models-dir");
+    std::string mfn_model_path = parser.get_option<std::string>("--mfn-model-path");
+    int num_classes = parser.get_option<int>("--num-classes");
+    std::string classifier_model_path = parser.get_option<std::string>("--classifier-model-path");
+    std::string classes_map_path = parser.get_option<std::string>("--classes-map-path");
+    std::string camera_ip = parser.get_option<std::string>("--camera-ip");
+    int frame_rate = parser.get_option<int>("--frame-rate");
+    int max_per_temp = parser.get_option<int>("--max-imgs-per-temp");
+    std::string temp_dir_path = parser.get_option<std::string>("--temp-dir");
 
-    clock_t start = clock();
-    cv::Mat img = cv::imread(argv[1]);
-    std::vector<Bbox> boxes = detector.detect(img);
+    tinyeye::logger::setup_server_socket(server_url);
+    tinyeye::RecognitionSystem::intialize(mtcnn_models_dir, mfn_model_path, 128, num_classes,
+                                          classifier_model_path, classes_map_path, camera_ip, temp_dir_path);
+    tinyeye::RecognitionSystem::set_frame_rate(frame_rate);
+    tinyeye::RecognitionSystem::set_max_imgs_per_temp(max_per_temp);
 
-    long prediction;
-    std::string name;
-    torch::Tensor embeddings;
-    
-    cv::Mat face;
-    cv::Mat img_copy = img.clone();
-    for (const auto& box : boxes)
-    {
-        if (box.score < 0.95)
-            continue;
+    std::thread t1(&tinyeye::RecognitionSystem::camera_loop);
+    std::thread t2(&tinyeye::RecognitionSystem::detection_loop);
+    std::thread t3(&tinyeye::RecognitionSystem::recognition_loop);
 
-        face = Mat(img, cv::Rect(box.y1, box.x1, box.height, box.width));
-        cv::resize(face, face, cv::Size(config.image_width, config.image_height));
-        embeddings = net.get_embeddings(face);
-
-        prediction = svm_model.predict(embeddings);
-        name = svm_model.prediction_to_class(prediction);
-
-        cv::putText(img_copy, name, cv::Point(box.y1, box.x1), cv::FONT_HERSHEY_TRIPLEX, 1, cv::Scalar(255, 0, 0), 1);
-    }
-
-    std::cout << "time: " << ((double)clock() - start) / CLOCKS_PER_SEC << std::endl;
-    cv::imshow("result", img_copy);
-    cv::waitKey(0);
+    t1.join();
 
     return 0;
 }
