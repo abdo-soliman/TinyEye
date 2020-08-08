@@ -4,15 +4,6 @@
 #include "argparser/argparser.h"
 #include "utils.h"
 #include "recognition_system/recognition_system.h"
-#include <stdio.h>
-#include <curl/curl.h>
-#include <string>
-
-
-size_t write_data(void *ptr, size_t size, size_t nmemb, FILE *stream) {
-    size_t written = std::fwrite(ptr, size, nmemb, stream);
-    return written;
-}
 
 int main(int argc, char **argv)
 {
@@ -61,22 +52,14 @@ int main(int argc, char **argv)
     // sio->send_test();
     // sleep(5);
 
-    CURL *curl;
-    FILE *fp;
-    CURLcode res;
-    const char *url = "https://i.imgur.com/oRtvmGT.jpg";
-    char outfilename[FILENAME_MAX] = "./test.jpg";
-    curl = curl_easy_init();
-    if (curl)
+    bool downloaded = utils::download("https://i.imgur.com/oRtvmGT.jpg", "./test.jpg");
+    if (downloaded)
     {
-        fp = std::fopen(outfilename, "wb");
-        curl_easy_setopt(curl, CURLOPT_URL, url);
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
-        res = curl_easy_perform(curl);
-        /* always cleanup */
-        curl_easy_cleanup(curl);
-        std::fclose(fp);
+        std::cout << "done" << std::endl;
+    }
+    else
+    {
+        std::cout << "failed" << std::endl;
     }
 
     // tinyeye::logger::setup_server_socket(server_url);

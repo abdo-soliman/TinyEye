@@ -4,7 +4,7 @@ import { Avatar, List } from "react-native-paper";
 import DeleteMenu from "./DeleteMenu";
 
 const PersonCard = (props) => {
-  const { image, id, name } = props;
+  const { image, id, name, onDelete } = props;
   return (
     <List.Item
       title={name}
@@ -24,7 +24,7 @@ const PersonCard = (props) => {
           />
         </View>
       )}
-      right={(props) => <DeleteMenu {...props} />}
+      right={(props) => <DeleteMenu {...props} onPress={onDelete} />}
     />
   );
 };

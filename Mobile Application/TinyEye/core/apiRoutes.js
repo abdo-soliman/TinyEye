@@ -8,6 +8,10 @@ export default {
     index: "humans",
     show: "humans/show",
     add: "model/register",
+    delete: "/remove/human",
+  },
+  model: {
+    train: "/create/model",
   },
   user: {
     updateToken: "update/notification/token",

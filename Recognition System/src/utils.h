@@ -14,7 +14,7 @@
 #include <opencv2/opencv.hpp>
 #include <map>
 #include <sys/stat.h>
-
+#include <curl/curl.h>
 
 class utils
 {
@@ -278,6 +278,43 @@ public:
     {
         struct stat buffer;
         return (stat(name.c_str(), &buffer) == 0);
+    }
+
+    static size_t write_data(void *ptr, size_t size, size_t nmemb, FILE *stream)
+    {
+        size_t written = std::fwrite(ptr, size, nmemb, stream);
+        return written;
+    }
+
+    static bool download(std::string url, std::string downlaod_path)
+    {
+        CURL *curl;
+        FILE *fp;
+        CURLcode res;
+        curl = curl_easy_init();
+        if (curl)
+        {
+            try
+            {
+                fp = std::fopen(downlaod_path.c_str(), "wb");
+                curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+                curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &write_data);
+                curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
+                res = curl_easy_perform(curl);
+                /* always cleanup */
+                curl_easy_cleanup(curl);
+                std::fclose(fp);
+            }
+            catch (...)
+            {
+                return false;
+            }
+        }
+        else
+        {
+            return false;
+        }
+        return true;
     }
 
 private:

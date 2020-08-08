@@ -11,6 +11,7 @@ import { FAB } from "react-native-paper";
 import { theme } from "../../core/theme";
 import Axios from "axios";
 import apiRoutes from "../../core/apiRoutes";
+import PersonsMenu from "../../components/PersonsMenu";
 
 export class PersonsScreen extends Component {
   constructor(props) {
@@ -24,7 +25,26 @@ export class PersonsScreen extends Component {
 
   componentDidMount() {
     this.getPersons();
+    this.configHeader();
   }
+
+  configHeader = () => {
+    this.props.navigation.setOptions({
+      headerRight: (props) => (
+        <PersonsMenu {...props} onPress={this.trainModel} />
+      ),
+    });
+  };
+
+  trainModel = () => {
+    Axios.post(apiRoutes.model.train)
+      .then((response) => {
+        Alert.alert("Info", response.data.msg);
+      })
+      .catch((error) => {
+        Alert.alert("Error", "Failed!");
+      });
+  };
 
   onRefresh = () => {
     this.getPersons();
@@ -45,6 +65,20 @@ export class PersonsScreen extends Component {
     this.props.navigation.navigate("Person", {
       id: key,
     });
+  };
+
+  deletePerson = (key) => {
+    Axios.post(apiRoutes.persons.delete, { humanId: key })
+      .then((response) => {
+        const persons = this.state.persons.filter(
+          (person) => person.id !== key
+        );
+        this.setState({ persons: persons });
+        Alert.alert("Info", response.data.msg);
+      })
+      .catch((error) => {
+        Alert.alert("Error", "Failed!");
+      });
   };
 
   goToAddPerson = () => {
@@ -76,6 +110,7 @@ export class PersonsScreen extends Component {
               image={item.image}
               name={item.name}
               onPress={() => this.goToPerson(item.id)}
+              onDelete={() => this.deletePerson(item.id)}
             />
           )}
           keyExtractor={(item) => item.id.toString()}

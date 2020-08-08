@@ -52,7 +52,7 @@ class HumanController {
         await ServerLogger.log("New directory successfully created " + name);
       }
     });
-    return 
+    return;
   };
 
   prepareData = async (req, res) => {
@@ -99,6 +99,7 @@ class HumanController {
   };
 
   removeHuman = async (req, res) => {
+    const modelController = new ModelController();
     //assumed that request contains user and human objects
     const human = await this.getHumanbyid(req.body.humanId);
     if (human) {

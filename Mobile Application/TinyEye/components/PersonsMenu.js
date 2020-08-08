@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Menu, IconButton } from "react-native-paper";
 
-const DeleteMenu = (props) => {
+const PersonsMenu = (props) => {
   const [visible, setVisible] = useState(false);
 
   const _openMenu = () => {
@@ -17,9 +17,9 @@ const DeleteMenu = (props) => {
         <IconButton {...props} onPress={_openMenu} icon="dots-vertical" />
       }
     >
-      <Menu.Item onPress={props.onPress} title="Delete" />
+      <Menu.Item onPress={props.onPress} title="Train model" />
     </Menu>
   );
 };
 
-export default DeleteMenu;
+export default PersonsMenu;
