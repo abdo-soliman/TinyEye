@@ -30,9 +30,10 @@ include_directories(${Caffe_INCLUDE_DIRS})
 include_directories(${TORCH_INCLUDE_DIRS})
 include_directories(${Boost_INCLUDE_DIR})
 include_directories(${SOCKETIO_INC})
+include_directories(${CURL_INC})
 include_directories(${OPENSSL_INCLUDE_DIR})
 
-target_link_libraries(tinyeye-core ${OpenCV_LIBS} ${Caffe_LIBRARIES} ${TORCH_LIBRARIES} ${SOCKETIO_LIB} ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES})
+target_link_libraries(tinyeye-core ${OpenCV_LIBS} ${Caffe_LIBRARIES} ${TORCH_LIBRARIES} ${SOCKETIO_LIB} ${CURL_LIB} ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES})
 target_link_libraries(tinyeye-controller_module tinyeye-core)
 
 function(install_dir src_dir_path destination_name)

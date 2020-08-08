@@ -12,6 +12,9 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <opencv2/opencv.hpp>
+#include <map>
+#include <sys/stat.h>
+
 
 class utils
 {
@@ -173,13 +176,14 @@ public:
      * @return  std::vector<std::string>
      * A utility function that obtians all files paths in a directory
      */
-    static std::vector<std::string> list_dir(const std::string& name)
+    static std::vector<std::string> list_dir(const std::string &name)
     {
         std::vector<std::string> v;
-        DIR* dirp = opendir(name.c_str());
-        struct dirent * dp;
+        DIR *dirp = opendir(name.c_str());
+        struct dirent *dp;
         std::string file_name;
-        while ((dp = readdir(dirp)) != NULL) {
+        while ((dp = readdir(dirp)) != NULL)
+        {
             file_name = dp->d_name;
             if (file_name == "." || file_name == "..")
                 continue;
@@ -226,7 +230,7 @@ public:
      * @return  std::string
      * A utility function that takes a opencv Mat object and return it's base64 string equivalent
      */
-    static std::string img2base64(const cv::Mat &img, std::string img_type="jpg")
+    static std::string img2base64(const cv::Mat &img, std::string img_type = "jpg")
     {
         //Mat to base64
         std::string img_data;
@@ -243,14 +247,47 @@ public:
         return img_data;
     }
 
+    static std::map<std::string, std::string> read_config()
+    {
+        std::ifstream cFile(".env");
+        std::map<std::string, std::string> config;
+        if (cFile.is_open())
+        {
+            std::string line;
+            while (getline(cFile, line))
+            {
+                line.erase(std::remove_if(line.begin(), line.end(), isspace),
+                           line.end());
+                if (line[0] == '#' || line.empty())
+                    continue;
+                auto delimiterPos = line.find("=");
+                std::string name = line.substr(0, delimiterPos);
+                std::string value = line.substr(delimiterPos + 1);
+                // std::cout << name << " " << value << '\n';
+                config.insert(std::make_pair(name, value));
+            }
+        }
+        else
+        {
+            std::cerr << "Couldn't open config file for reading.\n";
+        }
+        return config;
+    }
+
+    static bool exists(const std::string &name)
+    {
+        struct stat buffer;
+        return (stat(name.c_str(), &buffer) == 0);
+    }
+
 private:
-    static std::string base64_encode(const unsigned char* data, int data_byte)
+    static std::string base64_encode(const unsigned char *data, int data_byte)
     {
         // code table
         const char symbol_table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-            //return value 
+        //return value
         std::string str_encode;
-        unsigned char temp[4] = { 0 };
+        unsigned char temp[4] = {0};
         int line_length = 0;
         for (int i = 0; i < (int)(data_byte / 3); i++)
         {
@@ -261,7 +298,10 @@ private:
             str_encode += symbol_table[((temp[1] << 4) | (temp[2] >> 4)) & 0x3F];
             str_encode += symbol_table[((temp[2] << 2) | (temp[3] >> 6)) & 0x3F];
             str_encode += symbol_table[temp[3] & 0x3F];
-            if (line_length += 4, line_length == 76) { line_length = 0; }
+            if (line_length += 4, line_length == 76)
+            {
+                line_length = 0;
+            }
         }
 
         // Encode the remaining data
@@ -282,7 +322,7 @@ private:
             str_encode += symbol_table[((temp[2] & 0x0F) << 2)];
             str_encode += "=";
         }
-    
+
         return str_encode;
     }
 };

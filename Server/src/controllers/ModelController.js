@@ -11,10 +11,12 @@ import ServerLogger from "../modules/ServerLogger";
 const config = require("../../config/config.json");
 
 class ModelController {
-  addModel = async (path, url, boardId) => {
+  addModel = async (path, url, mapFile, mapUrl, boardId) => {
     return await Models.create({
       mPath: path,
       mUrl: url,
+      mapPath: mapFile,
+      mapUrl: mapUrl,
       boardId: boardId,
     });
   };
@@ -81,10 +83,10 @@ class ModelController {
     return board;
   };
 
-  sendCompleteSignalToBoard = async (boardId, modelUrl) => {
+  sendCompleteSignalToBoard = async (boardId, modelUrl, mapUrl) => {
     const board = await this.getBoard(boardId);
-    io.on(`board-${board.UUID}`, (socket) => {
-      socket.broadcast.emit(modelUrl);
+    io.of("/board-" + board.UUID).on("connect", (socket) => {
+      socket.broadcast.emit({ model: modelUrl, map: mapUrl });
     });
   };
 
@@ -99,6 +101,8 @@ class ModelController {
     try {
       const trainFile = `${myDirectory}/trainFile`;
       const testFile = `${myDirectory}/testFile`;
+      const mapFile = `${myDirectory}/mapFile`;
+      const mapUrl = `${config.url}/board_${boardId}/mapFile`;
       const modelFile = `${myDirectory}/models/model.pt`;
       const modelUrl = `${config.url}/board_${boardId}/models/model.pt`;
       const logFile = `${myDirectory}/logs/log.json`;
@@ -113,10 +117,17 @@ class ModelController {
             ServerLogger.stdError(stderr);
           } else {
             ServerLogger.modelLog(stdout);
-            const model = await this.addModel(modelFile, modelUrl, boardId);
+            const model = await this.addModel(
+              modelFile,
+              modelUrl,
+              mapFile,
+              mapUrl,
+              boardId
+            );
             await this.sendCompleteSignalToBoard(
               boardId,
-              model.dataValues.mUrl
+              model.dataValues.mUrl,
+              mapUrl
             );
             await this.sendSucessNotifications(boardId);
           }

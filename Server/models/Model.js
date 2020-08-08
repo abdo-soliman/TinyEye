@@ -17,6 +17,8 @@ const Models = db.define(
     },
     mPath: Sequelize.STRING,
     mUrl: Sequelize.STRING,
+    mapPath: Sequelize.STRING,
+    mapUrl: Sequelize.STRING,
     boardId: {
       type: Sequelize.INTEGER,
       references: {

@@ -12,6 +12,8 @@ list(APPEND CMAKE_PREFIX_PATH $ENV{LIB_CAFFE_PATH}) # added for libcaffe
 
 set(SOCKETIO_LIB "$ENV{LIB_SOCKET_IO_PATH}/lib/libsioclient.so")
 set(SOCKETIO_INC "$ENV{LIB_SOCKET_IO_PATH}/include")
+set(CURL_LIB "$ENV{LIB_CURL_PATH}/lib/.libs/libcurl.so")
+set(CURL_INC "$ENV{LIB_CURL_PATH}/include")
 
 cmake_policy(SET CMP0069 NEW)
 # Enable Link-Time Optimization, AKA Inter-Procedure Optimization
@@ -91,7 +93,7 @@ elseif (MSVC)
 	set(CMAKE_CXX_FLAGS_RELEASE "/Ot")
 endif()
 
-set(CMAKE_CXX_FLAGS "${COMPILER_WARNINGS} ${CMAKE_CXX_FLAGS} -pthread -lstdc++fs")
+set(CMAKE_CXX_FLAGS "${COMPILER_WARNINGS} ${CMAKE_CXX_FLAGS} -pthread -lstdc++fs -lcurl")
 
 add_subdirectory(${CMAKE_SOURCE_DIR}/src)
 
