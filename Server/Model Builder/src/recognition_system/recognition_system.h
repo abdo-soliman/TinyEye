@@ -10,6 +10,7 @@
 #include "mtcnn/mtcnn.h"
 #include "classifier/svm.h"
 #include "mobilefacenet/mfn.h"
+#include "classifier/ArcFace.h"
 #include "mobilefacenet/dataloaders/img_loader.h"
 
 namespace tinyeye
@@ -30,9 +31,9 @@ private:
     std::pair<torch::Tensor, torch::Tensor> create_dataset(mobilefacenet::img_loader& dataset);
 
     std::unique_ptr<mobilefacenet::mfn> mfn_net;
-    std::unique_ptr<svm> classifier;
+    std::unique_ptr<ArcFace> classifier;
 
-    svm_config classifier_config;
+    ArcMarginProductConfig classifier_config;
 
     bool use_mtcnn = true;
     mtcnn::mtcnn_config detector_config;
@@ -52,6 +53,6 @@ private:
     float model_acc = 0.0f;
     std::string model_path = "./svm_model.pt";
 };
-} // tinyeye
+} // namespace tinyeye
 
 #endif

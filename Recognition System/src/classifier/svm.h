@@ -34,6 +34,6 @@ private:
 
     torch::nn::Linear fully_connected{ nullptr };
 };
-}
+} // namespace tinyeye
 
 #endif
