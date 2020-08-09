@@ -52,7 +52,8 @@ void svm::fit(torch::Tensor dataset, torch::Tensor labels, bool log, int iterati
                 label = one_hot.narrow(0, start, N-start);
                 label_number = labels.narrow(0, start, N-start);
             }
-            else{
+            else
+            {
                 embeddings = dataset.narrow(0, start, BATCH_SIZE);
                 label = one_hot.narrow(0, start, BATCH_SIZE);
                 label_number = labels.narrow(0, start, BATCH_SIZE);

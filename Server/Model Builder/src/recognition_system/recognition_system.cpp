@@ -14,7 +14,7 @@ RecognitionSystem::RecognitionSystem(std::string mtcnn_md, std::string mfn_model
     try
     {
         mfn_net.reset();
-        mfn_net = std::make_unique<mobilefacenet::MobileFacenet>(mfn_model_path);
+        mfn_net = std::make_unique<mobilefacenet::mfn>(mfn_model_path);
 
         use_mtcnn = detect;
         detector_config.models_dir = mtcnn_md;
@@ -102,6 +102,7 @@ bool RecognitionSystem::train(std::string train_map_path, std::string test_map_p
 
     int test_size = test_labels.sizes()[0];
     float test_acc, best_acc = 0.0f;
+    float min_loss = 0.0f;
 
     avg_trial_time = 0;
     int i, best_index;
@@ -109,7 +110,7 @@ bool RecognitionSystem::train(std::string train_map_path, std::string test_map_p
     {
         if(log)
             logger::LOG_INFO("starting training trial number " + std::to_string(i) + "...");
-        svm current_classifier(classifier_config);
+        ArcFace current_classifier(classifier_config);
 
 		clock_t start = clock();
         current_classifier.fit(train_embeddings, train_labels, log, iters);
@@ -117,26 +118,26 @@ bool RecognitionSystem::train(std::string train_map_path, std::string test_map_p
         avg_trial_time += svm_train_time;
 
         auto predicted_labels = current_classifier.predict_many(test_embeddings);
-
         test_acc = predicted_labels.eq(test_labels).to(torch::kLong).sum().item<float>();
-        test_acc /= test_size;
+        test_acc /= test_size*3;
 
 		if(log)
-            logger::LOG_INFO("finshed training trial number " + std::to_string(i) + " with training_acc: " + std::to_string(current_classifier.final_acc));
+            logger::LOG_INFO("finshed training trial number " + std::to_string(i) + " with training_loss: " + std::to_string(current_classifier.get_loss()));
 
         std::string msg = "Trial: " + std::to_string(i) +\
         ", Acc: " + std::to_string(test_acc) +\
         ", Time: " + std::to_string(svm_train_time);
         logger::LOG_INFO(msg);
 
-        if (test_acc > best_acc)
+        if (test_acc > best_acc || current_classifier.get_loss() < min_loss)
         {
             best_index = i;
             best_acc = test_acc;
+            min_loss = current_classifier.get_loss();
             classifier.reset();
-            classifier = std::make_unique<svm>(current_classifier);
+            classifier = std::make_unique<ArcFace>(current_classifier);
 
-            if (test_acc > 0.985)
+            if (test_acc > 0.985 && min_loss < 0.003)
                 break;
         }
     }
