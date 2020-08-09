@@ -19,6 +19,10 @@ const Models = db.define(
     mUrl: Sequelize.STRING,
     mapPath: Sequelize.STRING,
     mapUrl: Sequelize.STRING,
+    updated: {
+      type: Sequelize.BOOLEAN,
+      defaultValue: true,
+    },
     boardId: {
       type: Sequelize.INTEGER,
       references: {

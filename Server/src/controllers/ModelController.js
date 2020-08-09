@@ -34,7 +34,7 @@ class ModelController {
   makedirectory = (name) => {
     fs.mkdir(name, { recursive: true }, function (err) {
       if (err) {
-        ServerLogger.error(err);
+        ServerLogger.error(err.message);
       } else {
         ServerLogger.log("New directory successfully created " + name);
       }
@@ -86,7 +86,7 @@ class ModelController {
   sendCompleteSignalToBoard = async (boardId, modelUrl, mapUrl) => {
     const board = await this.getBoard(boardId);
     io.of("/board-" + board.UUID).on("connect", (socket) => {
-      socket.broadcast.emit({ model: modelUrl, map: mapUrl });
+      socket.emit("model", { model: modelUrl, map: mapUrl, updated: true });
     });
   };
 
@@ -109,7 +109,7 @@ class ModelController {
       const executeStatement = `~/tinyeye-server/bin/tinyeye-server_module 2> /dev/null --server-log-path ~/tinyeye-server.log --mtcnn-models-dir ~/tinyeye-server/models/mtcnn --mfn-model-path ~/tinyeye-server/models/mobilefacenet.pt --train-map-path ${trainFile} --test-map-path ${testFile} --output-model-path ${modelFile} --json-log-path ${logFile} --mapping-file-delimiter ${delimiter} --log true`;
       await exec.exec(executeStatement, async (error, stdout, stderr) => {
         if (error !== null) {
-          ServerLogger.error(error);
+          ServerLogger.error(error.message);
           await this.sendFailNotifications(boardId);
         } else {
           if (stderr) {
@@ -134,7 +134,7 @@ class ModelController {
         }
       });
     } catch (error) {
-      ServerLogger.error(error);
+      ServerLogger.error(error.message);
     }
   };
 
@@ -144,8 +144,8 @@ class ModelController {
       await fs.appendFileSync(
         myDirectory + "/trainFile",
         images[i].dataValues.iPath + delimiter + classId + "\n",
-        function (err) {
-          ServerLogger.error(err);
+        async function (err) {
+          ServerLogger.error(err.message);
         }
       );
     }
@@ -155,7 +155,7 @@ class ModelController {
         myDirectory + "/testFile",
         images[i].dataValues.iPath + delimiter + classId + "\n",
         function (err) {
-          ServerLogger.error(err);
+          ServerLogger.error(err.message);
         }
       );
     }
@@ -182,8 +182,8 @@ class ModelController {
       await fs.appendFileSync(
         myDirectory + "/mapFile",
         human.dataValues.name + "=" + index + "\n",
-        function (err) {
-          ServerLogger.error(err);
+        async function (err) {
+          ServerLogger.error(err.message);
         }
       );
       this.mappingToFile(images, myDirectory, index, delimiter);
