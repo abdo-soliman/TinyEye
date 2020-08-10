@@ -41,6 +41,8 @@ Route.post(
 Route.post("/push/notification", "UserController@push", [AuthMiddleware]);
 
 Route.post("/create/model", "ModelController@trainModel", [AuthMiddleware]);
+Route.get("/get/model", "ModelController@show", [AuthMiddleware]);
+
 Route.post(
   "/model/register",
   "HumanController@prepareData",

@@ -6,7 +6,7 @@ import exec from "child_process";
 import pushNotification from "../notifications";
 import User from "../../models/User";
 import Board from "../../models/Board";
-import { io } from "../sockets";
+import { boardNsp } from "../sockets";
 import ServerLogger from "../modules/ServerLogger";
 const config = require("../../config/config.json");
 
@@ -85,9 +85,15 @@ class ModelController {
 
   sendCompleteSignalToBoard = async (boardId, modelUrl, mapUrl) => {
     const board = await this.getBoard(boardId);
-    io.of("/board-" + board.UUID).on("connect", (socket) => {
-      socket.emit("model", { model: modelUrl, map: mapUrl, updated: true });
+    console.log("start Send to board");
+    // io.of("/board-" + board.UUID).on("connect", (socket) => {
+    //   console.log("Send to board");
+    boardNsp.emit("model", {
+      model: modelUrl,
+      map: mapUrl,
+      updated: true,
     });
+    // });
   };
 
   trainingModel = async (req, myDirectory, delimiter, boardId) => {
@@ -132,10 +138,13 @@ class ModelController {
             await this.sendSucessNotifications(boardId);
           }
         }
+        this.updateBoardTraining(false, req.user.boardId);
       });
     } catch (error) {
       ServerLogger.error(error.message);
+      this.updateBoardTraining(false, req.user.boardId);
     }
+    return true;
   };
 
   mappingToFile = async (images, myDirectory, classId, delimiter) => {
@@ -166,9 +175,15 @@ class ModelController {
   };
 
   createModel = async (req) => {
+    const board = await this.getBoard(req.user.boardId);
+    if (board.training) {
+      return false;
+    }
+    this.updateBoardTraining(true, req.user.boardId);
     const humancontroller = new HumanController();
     const imagecontroller = new ImageController();
     var humans = await humancontroller.getHumanbyboard(req.user.boardId);
+    await humancontroller.deleteModel(req.user.boardId);
     var myDirectory = `${__dirname}/../../storage/board_${req.user.boardId}`;
     const delimiter = ",";
     this.deleteFile(`${myDirectory}/trainFile`);
@@ -192,10 +207,19 @@ class ModelController {
   };
 
   trainModel = async (req, res) => {
-    await this.createModel(req);
+    const trained = await this.createModel(req);
+    if (!trained) {
+      return res.json({
+        msg: "Model is already training we will notify you when we done",
+      });
+    }
     return res.json({
       msg: "Model is training we will notify you when we done",
     });
+  };
+
+  updateBoardTraining = async (training, boardId) => {
+    await Board.update({ training: training }, { where: { id: boardId } });
   };
 
   // updateModel = (req, res) => {
@@ -220,6 +244,15 @@ class ModelController {
       },
     });
     return res.json({ model });
+  };
+
+  show = async (req, res) => {
+    var model = await Models.findOne({
+      where: {
+        boardId: req.user.boardId,
+      },
+    });
+    return res.json(model);
   };
 }
 

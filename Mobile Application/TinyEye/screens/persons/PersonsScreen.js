@@ -7,7 +7,14 @@ import {
   RefreshControl,
 } from "react-native";
 import PersonCard from "../../components/PersonCard";
-import { FAB } from "react-native-paper";
+import {
+  FAB,
+  Card,
+  IconButton,
+  Avatar,
+  Button,
+  Surface,
+} from "react-native-paper";
 import { theme } from "../../core/theme";
 import Axios from "axios";
 import apiRoutes from "../../core/apiRoutes";
@@ -18,14 +25,20 @@ export class PersonsScreen extends Component {
     super(props);
     this.state = {
       persons: [],
+      model: null,
       open: false,
       refreshing: false,
+      train: false,
     };
   }
 
   componentDidMount() {
+    const train =
+      this.props.route.params && this.props.route.params.train ? true : false;
+    this.setState({ train: train });
     this.getPersons();
-    this.configHeader();
+    this.getModel();
+    // this.configHeader();
   }
 
   configHeader = () => {
@@ -34,6 +47,18 @@ export class PersonsScreen extends Component {
         <PersonsMenu {...props} onPress={this.trainModel} />
       ),
     });
+  };
+
+  getModel = () => {
+    Axios.get(apiRoutes.model.show)
+      .then((response) => {
+        const { data } = response;
+        console.log(data);
+        this.setState({ model: data });
+      })
+      .catch((error) => {
+        Alert.alert("Error", "Can't load data");
+      });
   };
 
   trainModel = () => {
@@ -48,6 +73,7 @@ export class PersonsScreen extends Component {
 
   onRefresh = () => {
     this.getPersons();
+    this.getModel();
   };
 
   getPersons = () => {
@@ -73,6 +99,9 @@ export class PersonsScreen extends Component {
         const persons = this.state.persons.filter(
           (person) => person.id !== key
         );
+        if (this.state.model) {
+          this.setState({ model: { ...this.state.model, updated: false } });
+        }
         this.setState({ persons: persons });
         Alert.alert("Info", response.data.msg);
       })
@@ -88,13 +117,31 @@ export class PersonsScreen extends Component {
   _onStateChange = ({ open }) => this.setState({ open });
 
   render() {
-    const { open } = this.state;
+    const { open, model, train } = this.state;
     return (
       <View
         style={{
           flex: 1,
         }}
       >
+        {(!model || !model.updated || train) && (
+          <Surface style={{ elevation: 10 }}>
+            <Card.Title
+              title="Model is not updated"
+              subtitle="Press train to update it"
+              style={{ backgroundColor: "red", color: "white" }}
+              titleStyle={{ color: "white" }}
+              subtitleStyle={{ color: "white" }}
+              right={(props) => (
+                <Surface style={{ elevation: 10, marginRight: 10 }}>
+                  <Button color="red" {...props} onPress={this.trainModel}>
+                    Train
+                  </Button>
+                </Surface>
+              )}
+            />
+          </Surface>
+        )}
         <FlatList
           refreshControl={
             <RefreshControl

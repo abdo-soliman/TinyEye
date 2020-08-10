@@ -121,7 +121,7 @@ torch::Tensor ArcFace::predict_many(torch::Tensor embeddings)
         predictions.push_back(predict(embedding));
     }
 
-    return torch::from_blob(predictions.data(), {N, 1}, torch::kLong).clone();
+    return torch::from_blob(predictions.data(), {N}, torch::kLong).clone();
 }
 
 std::string ArcFace::prediction_to_class(long prediction)

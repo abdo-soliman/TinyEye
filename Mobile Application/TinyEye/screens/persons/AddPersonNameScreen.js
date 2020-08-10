@@ -32,12 +32,6 @@ export class AddPersonNameScreen extends Component {
   createFormData = (images, body) => {
     const data = new FormData();
 
-    // data.append("images", {
-    //   name: images.fileName,
-    //   type: images.type,
-    //   uri:
-    //     Platform.OS === "android" ? images.uri : images.uri.replace("file://", "")
-    // });
     for (let index = 0; index < images.length; index++) {
       const image = images[index];
       data.append("images", {
@@ -77,13 +71,44 @@ export class AddPersonNameScreen extends Component {
       .then((response) => {
         const { data } = response;
         Alert.alert("Sucess", data.msg);
-        this.props.navigation.navigate("Persons");
+        this.props.navigation.navigate("Persons", { train: true });
       })
       .catch((error) => {
         // const { data } = error.response;
         Alert.alert("Error", "something wrong happened");
       });
     // this.props.navigation.navigate("Persons");
+  };
+
+  addAndTrain = () => {
+    const { name, images } = this.state;
+    const nameError = nameValidator(name.value);
+
+    if (nameError) {
+      this.setState({
+        name: { ...name, error: nameError },
+      });
+      return;
+    }
+
+    Axios.post(
+      apiRoutes.persons.add,
+      this.createFormData(images, { name: name.value, train: true }),
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    )
+      .then((response) => {
+        const { data } = response;
+        Alert.alert("Sucess", data.msg);
+        this.props.navigation.navigate("Persons");
+      })
+      .catch((error) => {
+        // const { data } = error.response;
+        Alert.alert("Error", "something wrong happened");
+      });
   };
 
   render() {
@@ -104,7 +129,7 @@ export class AddPersonNameScreen extends Component {
         <Button mode="contained" onPress={this.addAndGoBack}>
           Add person and back to add another one
         </Button>
-        <Button mode="outlined" onPress={() => {}}>
+        <Button mode="outlined" onPress={this.addAndTrain}>
           Add person and finish
         </Button>
       </View>

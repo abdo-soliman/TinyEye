@@ -15,8 +15,8 @@ namespace tinyeye
 	}
 
 	void RecognitionSystem::intialize(std::string mtcnn_models_dir, std::string mfn_model_path,
-									  int in_features, int out_features, std::string classifier_model_path,
-									  std::string classifier_map_path, std::string camera_ip, std::string temp_dir_path, tinyeye::socket *sio)
+		int in_features, int out_features, std::string classifier_model_path,
+		std::string classifier_map_path, std::string camera_ip, std::string temp_dir_path, tinyeye::socket *sio)
 	{
 		recognition_system.sio_server = sio;
 		recognition_system.updated_classifier = false;
@@ -54,7 +54,6 @@ namespace tinyeye
 		}
 
 		sio->send_get_model_signal();
-		sleep(4);
 		while (!recognition_system.updated_classifier)
 		{
 			sleep(1);
@@ -89,7 +88,7 @@ namespace tinyeye
 	}
 
 	void RecognitionSystem::load_classifier(int in_features, int out_features, std::string classifier_model_path,
-											std::string classifier_map_path)
+		std::string classifier_map_path)
 	{
 		try
 		{
@@ -334,6 +333,7 @@ namespace tinyeye
 				if (updated_classifier)
 				{
 					// reload the classifier model
+					std::cout << "Continue processing ..." << std::endl;
 					load_classifier(in_features, out_features, classifier_model_path, classifier_map_path);
 				}
 			}
@@ -373,7 +373,7 @@ namespace tinyeye
 
 	bool RecognitionSystem::overlaping(const cv::Rect2d &b1, const cv::Rect2d &b2)
 	{
-		cv::Point b1_corners[4] = {b1.tl(), b1.br()};
+		cv::Point b1_corners[4] ={ b1.tl(), b1.br() };
 		b1_corners[2] = cv::Point(b1.x + b1.width, b1.y);
 		b1_corners[2] = cv::Point(b1.x, b1.y + b1.height);
 

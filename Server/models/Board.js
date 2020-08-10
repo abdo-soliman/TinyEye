@@ -7,6 +7,10 @@ const Board = db.define(
     UUID: {
       type: Sequelize.UUID,
     },
+    training: {
+      type: Sequelize.BOOLEAN,
+      defaultValue: false,
+    },
   },
   {
     timestamps: true, // timestamps will now be true

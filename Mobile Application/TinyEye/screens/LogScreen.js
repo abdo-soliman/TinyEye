@@ -77,7 +77,7 @@ export class LogScreen extends Component {
         <View style={{ alignItems: "center" }}>
           <Image
             source={{ uri: log.iUrl }}
-            style={{ width: screenWidth - 20, height: 500 }}
+            style={{ width: screenWidth - 20, aspectRatio: 3/2 }}
           />
         </View>
       </Background>

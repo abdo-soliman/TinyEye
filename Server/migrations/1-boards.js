@@ -28,6 +28,10 @@ module.exports = {
           indicesType: "UNIQUE",
           allowNull: false,
         },
+        training: {
+          type: Sequelize.BOOLEAN,
+          defaultValue: false,
+        },
       },
       {
         engine: "InnoDB", // default: 'InnoDB'

@@ -89,7 +89,12 @@ class HumanController {
     }
     await this.deleteModel(human.dataValues.boardId);
     if (req.body.train) {
-      await modelController.createModel(req);
+      const trained = await modelController.createModel(req);
+      if (!trained) {
+        return res.json({
+          msg: "Model is already training we will notify you when we done",
+        });
+      }
       return res.json({
         msg:
           "data is prepared successfully and model is training we will notify you when we done",
@@ -108,10 +113,11 @@ class HumanController {
       const myDirectory = human.dataValues.dirPath;
       if (fs.existsSync(myDirectory)) {
         fs.rmdir(myDirectory, { recursive: true }, () => {});
-        await modelController.createModel(req);
+        // await modelController.createModel(req);
         return res.json({
           msg:
-            "Person is deleted successfully and model is training we will notify you when we done",
+            // "Person is deleted successfully and model is training we will notify you when we done",
+            "Person is deleted successfully, Please press train model to update your data",
         });
       }
     }

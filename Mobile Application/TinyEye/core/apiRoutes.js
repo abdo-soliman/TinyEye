@@ -12,6 +12,7 @@ export default {
   },
   model: {
     train: "/create/model",
+    show: "/get/model",
   },
   user: {
     updateToken: "update/notification/token",

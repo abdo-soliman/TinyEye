@@ -43,7 +43,7 @@ io.on("connection", (socket) => {
 
 const boardNsp = io.of(/^\/board-\d+$/).on("connect", (socket) => {
   const newNamespace = socket.nsp; // newNamespace.name === '/board-101'
-  // console.log(newNamespace.name);
+  // console.log("newNamespace", newNamespace.name);
   // console.log(socket.handshake.query);
   socket.on("get_model", async () => {
     const UUID = socket.handshake.query.serial;
@@ -66,4 +66,4 @@ const boardNsp = io.of(/^\/board-\d+$/).on("connect", (socket) => {
   // newNamespace.emit("hello");
 });
 
-export { io, server, app };
+export { io, server, app, boardNsp };
