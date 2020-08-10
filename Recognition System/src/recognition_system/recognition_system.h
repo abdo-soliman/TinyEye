@@ -10,9 +10,9 @@
 #include <opencv2/tracking.hpp>
 
 #include "mtcnn/mtcnn.h"
-#include "classifier/svm.h"
-#include "mobilefacenet/mfn.h"
 #include "sockets/socket.h"
+#include "mobilefacenet/mfn.h"
+#include "classifier/ArcFace.h"
 
 typedef cv::Ptr<cv::Tracker> tracker_ptr;
 namespace tinyeye
@@ -44,7 +44,7 @@ namespace tinyeye
 
         std::unique_ptr<mtcnn::MTCNN> detector;
         std::unique_ptr<mobilefacenet::mfn> mfn_net;
-        std::unique_ptr<svm> classifier;
+        std::unique_ptr<ArcFace> classifier;
 
         std::mutex unprocessed_dirs_mutex;
         std::mutex processing_dirs_mutex;

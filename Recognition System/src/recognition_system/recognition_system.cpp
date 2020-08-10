@@ -94,7 +94,7 @@ namespace tinyeye
 		try
 		{
 			recognition_system.classifier.reset();
-			recognition_system.classifier = std::make_unique<svm>(in_features, out_features);
+			recognition_system.classifier = std::make_unique<ArcFace>();
 			recognition_system.classifier->construct_map(classifier_map_path);
 			recognition_system.classifier->load(classifier_model_path);
 		}
