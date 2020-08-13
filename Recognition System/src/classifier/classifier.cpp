@@ -1,6 +1,6 @@
 #include "classifier.h"
 #include <fstream>
-#include "utils/utils.h"
+#include "utils.h"
 
 /**
  * @param   none
@@ -35,7 +35,7 @@ void Classifier::construct_map(std::string filename)
 
         class_name = line.substr(0, pos);
         line.erase(0, pos + 1);
-        if (!is_uint(line)) // check if class code is an unsigned integer
+        if (!utils::is_uint(line)) // check if class code is an unsigned integer
             throw "Error: Class code must be an integer";
 
         class_code = std::stoi(line.c_str());

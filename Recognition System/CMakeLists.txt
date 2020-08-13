@@ -7,20 +7,6 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 set(CMAKE_PREFIX_PATH "")
 
-option(USE_TORCH "Build with Pytorch" OFF)
-option(USE_TENSORFLOW "Build with tensorflow" OFF)
-
-if (USE_TORCH)
-	list(APPEND CMAKE_PREFIX_PATH $ENV{LIB_TORCH_PATH})
-	set(USE_TENSORFLOW OFF) # make sure that no one accidentally enable both libraries
-endif()
-
-if (USE_TENSORFLOW)
-	set(USE_PYTORCH OFF) # make sure that no one accidentally enable both libraries
-	set(TFLITE_LIB "$ENV{LIB_TENSORFLOW_PATH}/lib/libtensorflow-lite.a")
-	set(TFLITE_INC "$ENV{LIB_TENSORFLOW_PATH}/include")
-endif()
-
 cmake_policy(SET CMP0069 NEW)
 # Enable Link-Time Optimization, AKA Inter-Procedure Optimization
 if(NOT ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug"))

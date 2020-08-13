@@ -78,14 +78,61 @@ vector<Bbox> MTCNN::detect(Mat img)
 	return stage2(img);
 }
 
-vector<Mat> MTCNN::detect_faces(Mat img)
+int MTCNN::detect_count(Mat img, float threshold)
+{
+	vector<Bbox> boxes = detect(img.clone());
+
+	// createing vector of faces from boxes
+	int count = 0;
+	for (const auto &box : boxes)
+	{
+		if (box.score > threshold)
+			count++;
+	}
+
+	return count;
+}
+
+std::list<cv::Rect2d> MTCNN::detect_rects(Mat img, float threshold)
+{
+	vector<Bbox> boxes = detect(img.clone());
+
+	// createing vector of faces from boxes
+	std::list<cv::Rect2d> results;
+	int x1, y1, width, height;
+	for (const auto &box : boxes)
+	{
+		if (box.score > threshold)
+		{
+			x1 = std::max(0, box.x1);
+			y1 = std::max(0, box.y1);
+			width = std::min(img.cols - y1, box.y2 - box.y1 + 1);
+			height = std::min(img.rows - x1, box.x2 - box.x1 + 1);
+			results.push_back(cv::Rect2d(y1, x1, width, height));
+		}
+	}
+
+	return results;
+}
+
+vector<Mat> MTCNN::detect_faces(Mat img, float threshold)
 {
 	vector<Bbox> boxes = detect(img.clone());
 
 	// createing vector of faces from boxes
 	vector<Mat> results;
+	int x1, y1, width, height;
 	for (const auto &box : boxes)
-		results.push_back(Mat(img, cv::Rect(box.y1, box.x1, box.height, box.width)));
+	{
+		if (box.score > threshold)
+		{
+			x1 = std::max(0, box.x1);
+			y1 = std::max(0, box.y1);
+			width = std::min(img.cols - y1, box.y2 - box.y1 + 1);
+			height = std::min(img.rows - x1, box.x2 - box.x1 + 1);
+			results.push_back(Mat(img, cv::Rect(y1, x1, width, height)));
+		}
+	}
 
 	return results;
 }
@@ -93,7 +140,14 @@ vector<Mat> MTCNN::detect_faces(Mat img)
 void MTCNN::detect_draw(Mat &img)
 {
 	vector<Bbox> boxes = detect(img.clone());
+	int x1, y1, width, height;
 	for (const auto box : boxes)
-		cv::rectangle(img, cv::Rect(box.y1, box.x1, box.height, box.width), cv::Scalar(255, 0, 0), 2);
+	{
+		x1 = std::max(0, box.x1);
+		y1 = std::max(0, box.y1);
+		width = std::min(img.cols - y1, box.y2 - box.y1 + 1);
+		height = std::min(img.rows - x1, box.x2 - box.x1 + 1);
+		cv::rectangle(img, cv::Rect(y1, x1, width, height), cv::Scalar(255, 0, 0), 2);
+	}
 }
 } // namespace mtcnn
