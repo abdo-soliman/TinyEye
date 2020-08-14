@@ -4,8 +4,10 @@
   "description": "A Node.js server to handle communication with the [Recognition System](../Recognition%20System/README.md \"Recognition System Project\") and the [Mobile Application](../Mobile%20Application/README.md \"Mobile Application Project\").",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon --ignore './storage/' --exec babel-node src/index.js"
+    "start": "nodemon --ignore './storage/' --exec babel-node src/index.js",
+    "migrate": "npx sequelize-cli db:migrate",
+    "migrate:reset": "npx sequelize-cli db:migrate:undo:all && npm run migrate",
+    "test": "jest --verbose --detectOpenHandles"
   },
   "author": "",
   "license": "ISC",
@@ -25,6 +27,16 @@
   "devDependencies": {
     "@babel/core": "^7.10.2",
     "@babel/node": "^7.10.3",
-    "@babel/preset-env": "^7.10.2"
+    "@babel/plugin-transform-runtime": "^7.11.0",
+    "@babel/preset-env": "^7.10.2",
+    "cross-env": "^7.0.2",
+    "jest": "^26.4.0",
+    "supertest": "^4.0.2"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "coveragePathIgnorePatterns": [
+      "/node_modules/"
+    ]
   }
 }

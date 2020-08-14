@@ -5,6 +5,14 @@ import http from "http";
 import Board from "../../models/Board";
 import ModelMan from "../modules/ModelMan";
 import LogMan from "../modules/LogMan";
+import router from "../router";
+
+app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
+app.use(express.static("storage"));
+
+app.use("/", router);
+
 const server = http.createServer(app);
 
 const io = socketio(server);
