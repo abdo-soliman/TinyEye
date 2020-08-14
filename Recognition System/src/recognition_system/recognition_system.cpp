@@ -421,6 +421,7 @@ namespace tinyeye
 
 		cv::Mat face;
 		cv::Rect2d bbox;
+		int x, y, width, height;
 		for (auto &tracker : trackers)
 		{
 			clock_t start = clock();
@@ -433,7 +434,11 @@ namespace tinyeye
 					dir_name = trackers_dirs_map[tracker].first;
 					num_files = trackers_dirs_map[tracker].second;
 
-					face = cv::Mat(frame, cv::Rect(bbox.x, bbox.y, bbox.width, bbox.height));
+					x = std::max(0, static_cast<int>(bbox.x));
+					y = std::max(0, static_cast<int>(bbox.y));
+					width = std::min(frame.cols - x, static_cast<int>(bbox.width));
+					height = std::min(frame.rows - y,static_cast<int>(bbox.height));
+					face = cv::Mat(frame, cv::Rect(x, y, width, height));
 					cv::imwrite(dir_name + "/" + std::to_string(num_files) + ".jpg", face);
 
 					trackers_dirs_map[tracker] = std::make_pair(dir_name, ++num_files);
