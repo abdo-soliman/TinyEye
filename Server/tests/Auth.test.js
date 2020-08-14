@@ -1,5 +1,5 @@
 import request from "supertest";
-import { server, app } from "../src/sockets";
+import { app } from "../src/sockets";
 import Sequelize from "sequelize";
 import Board from "../models/Board";
 const env = process.env.NODE_ENV || "test";
