@@ -31,7 +31,8 @@ int main (int argc, char** argv)
     }
 
     std::ifstream input_file;
-    double num_correct = 0;
+    double num_precision = 0;
+    double num_recall = 0;
     double total = 0;
     try
     {
@@ -40,19 +41,25 @@ int main (int argc, char** argv)
         {
             cv::Mat img;
             int num_faces;
+            int predicted_num_faces;
             std::string image_path;
             while (input_file >> image_path >> num_faces)
             {
                 total++;
                 img = cv::imread(image_path);
-                if (detector->detect_count(img, threshold) == num_faces)
-                    num_correct++;
+                predicted_num_faces = detector->detect_count(img, threshold);
+                if (predicted_num_faces == num_faces)
+                    num_precision++;
+                if (predicted_num_faces >= num_faces)
+                    num_recall++;
             }
 
-            std::cout << "Total: Number Of Images: " << total << std::endl;
-            std::cout << "Number Of Correctly classified Images: " << num_correct << std::endl;
+            std::cout << "Total Number Of Images: " << total << std::endl;
+            std::cout << "Number Of Precision classified Images: " << num_precision << std::endl;
+            std::cout << "Number Of Recall classified Images: " << num_recall << std::endl;
             std::cout.precision(4);
-            std::cout << "Accuracy: " << (num_correct / total) * 100.0 << "%" << std::endl;
+            std::cout << "Precision: " << (num_precision / total) * 100.0 << "%" << std::endl;
+            std::cout << "Recall: " << (num_recall / total) * 100.0 << "%" << std::endl;
         }
         else
         {
