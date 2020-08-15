@@ -9,13 +9,13 @@
   "test": {
     "username": "root",
     "password": "root",
-    "database": "TinyEye",
+    "database": "TinyEye-test",
     "host": "127.0.0.1",
     "dialect": "mysql"
   },
   "production": {
     "username": "root",
-    "password": null,
+    "password": "root",
     "database": "TinyEye",
     "host": "127.0.0.1",
     "dialect": "mysql"
