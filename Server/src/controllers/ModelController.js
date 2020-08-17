@@ -84,10 +84,7 @@ class ModelController {
   };
 
   sendCompleteSignalToBoard = async (boardId, modelUrl, mapUrl) => {
-    const board = await this.getBoard(boardId);
     console.log("start Send to board");
-    // io.of("/board-" + board.UUID).on("connect", (socket) => {
-    //   console.log("Send to board");
     boardNsp.emit("model", {
       model: modelUrl,
       map: mapUrl,
@@ -113,7 +110,7 @@ class ModelController {
       const modelUrl = `${config.url}/board_${boardId}/models/model.pt`;
       const logFile = `${myDirectory}/logs/log.json`;
       const executeStatement = `~/tinyeye-server/bin/tinyeye-server_module 2> /dev/null --server-log-path ~/tinyeye-server.log --mtcnn-models-dir ~/tinyeye-server/models/mtcnn --mfn-model-path ~/tinyeye-server/models/mobilefacenet.pt --train-map-path ${trainFile} --test-map-path ${testFile} --output-model-path ${modelFile} --json-log-path ${logFile} --mapping-file-delimiter ${delimiter} --log true`;
-      await exec.exec(executeStatement, async (error, stdout, stderr) => {
+      exec.exec(executeStatement, async (error, stdout, stderr) => {
         if (error !== null) {
           ServerLogger.error(error.message);
           await this.sendFailNotifications(boardId);
@@ -150,7 +147,7 @@ class ModelController {
   mappingToFile = async (images, myDirectory, classId, delimiter) => {
     var trainLength = Math.ceil(0.8 * images.length);
     for (let i = 0; i < trainLength; i++) {
-      await fs.appendFileSync(
+      fs.appendFileSync(
         myDirectory + "/trainFile",
         images[i].dataValues.iPath + delimiter + classId + "\n",
         async function (err) {

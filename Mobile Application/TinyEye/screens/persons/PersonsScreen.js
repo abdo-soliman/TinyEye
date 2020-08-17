@@ -172,11 +172,11 @@ export class PersonsScreen extends Component {
               label: "Camera",
               onPress: this.goToAddPerson,
             },
-            {
-              icon: "file-image",
-              label: "Gallery",
-              onPress: () => console.log("Pressed Gallery"),
-            },
+            // {
+            //   icon: "file-image",
+            //   label: "Gallery",
+            //   onPress: () => console.log("Pressed Gallery"),
+            // },
           ]}
           onStateChange={this._onStateChange}
           onPress={() => {
