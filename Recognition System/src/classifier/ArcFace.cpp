@@ -170,7 +170,7 @@ void ArcFace::construct_map(std::string map_filename)
 
     try
     {
-        file.open(map_filename);
+        file.open(map_filename.c_str());
         if (!file.is_open())
         {
             std::cerr << "Error: Can't open class map file please make sure correct path is provided" << std::endl;
@@ -186,20 +186,20 @@ void ArcFace::construct_map(std::string map_filename)
     std::string line;
     std::string class_name;
     long class_code;
-    while (file >> line)
+    while (getline(file, line))
     {
         size_t pos = 0;
         // check if delimiter exists
         if ((pos = line.find(DELIMITER)) == std::string::npos)
             throw "Error: Wrong file format can't find delimiter";
-
+    
         class_name = line.substr(0, pos);
+
         line.erase(0, pos + 1);
         if (!utils::is_uint(line)) // check if class code is an unsigned integer
             throw "Error: Class code must be an integer";
 
         class_code = std::stoi(line.c_str());
-
         class_map.insert(std::pair<long, std::string>(class_code, class_name));
     }
 

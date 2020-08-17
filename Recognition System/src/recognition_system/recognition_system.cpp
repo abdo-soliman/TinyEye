@@ -2,9 +2,13 @@
 
 #include <unistd.h>
 #include <iostream>
+#include <bcm2835.h>
 
 #include "utils.h"
 #include "logger/logger.h"
+
+#define SENSOR RPI_V2_GPIO_P1_37
+#define ACTIVE_VALUE 1
 
 namespace tinyeye
 {
@@ -14,16 +18,16 @@ namespace tinyeye
 	{
 	}
 
-	void RecognitionSystem::intialize(std::string mtcnn_models_dir, std::string mfn_model_path,
-		int in_features, int out_features, std::string classifier_model_path,
-		std::string classifier_map_path, std::string camera_ip, std::string temp_dir_path, tinyeye::socket *sio)
+	void RecognitionSystem::intialize(std::string mtcnn_models_dir, float mtcnn_th, std::string mfn_model_path,
+									  std::string classifier_model_path, std::string classifier_map_path, float unknown_th,
+									  std::string camera_ip, std::string temp_dir_path, tinyeye::socket *sio)
 	{
 		recognition_system.sio_server = sio;
 		recognition_system.updated_classifier = false;
-		recognition_system.in_features = in_features;
-		recognition_system.out_features = out_features;
 		recognition_system.classifier_model_path = classifier_model_path;
 		recognition_system.classifier_map_path = classifier_map_path;
+		recognition_system.mtcnn_threshold = mtcnn_th;
+		recognition_system.unknown_threshold = unknown_th;
 
 		try
 		{
@@ -61,14 +65,16 @@ namespace tinyeye
 		}
 		std::cout << "Start processing" << std::endl;
 
-		recognition_system.load_classifier(in_features, out_features, classifier_model_path, classifier_map_path);
+		recognition_system.load_classifier(classifier_model_path, classifier_map_path);
 
 		recognition_system.ip = camera_ip;
 		recognition_system.temp_dir = temp_dir_path;
 		recognition_system.camera_temp_dir = temp_dir_path + "/camera";
 		recognition_system.recognition_temp_dir = temp_dir_path + "/recognition";
 
-		std::string command = "mkdir -p " + recognition_system.camera_temp_dir;
+		std::string command = "rm -rf " + recognition_system.camera_temp_dir;
+		system(command.c_str());
+		command = "mkdir -p " + recognition_system.camera_temp_dir;
 		system(command.c_str());
 		if (!utils::is_dir(recognition_system.camera_temp_dir))
 		{
@@ -77,6 +83,8 @@ namespace tinyeye
 			throw std::runtime_error(msg);
 		}
 
+		command = "rm -rf " + recognition_system.recognition_temp_dir;
+		system(command.c_str());
 		command = "mkdir -p " + recognition_system.recognition_temp_dir;
 		system(command.c_str());
 		if (!utils::is_dir(recognition_system.recognition_temp_dir))
@@ -85,17 +93,28 @@ namespace tinyeye
 			logger::LOG_ERROR(FAILED_TO_CREATE_TEMP_DIR, msg);
 			throw std::runtime_error(msg);
 		}
+
+		if (!bcm2835_init())
+		{
+			std::cout << "failed to intialize GPIO connection" << std::endl;
+			exit(-1);
+		}
+
+		bcm2835_gpio_fsel(SENSOR, BCM2835_GPIO_FSEL_INPT);//SENSOR as input
+		bcm2835_gpio_set_pud(SENSOR, BCM2835_GPIO_PUD_UP);
+		recognition_system.sensor_state = ACTIVE_VALUE; //Init state to HIGH
 	}
 
-	void RecognitionSystem::load_classifier(int in_features, int out_features, std::string classifier_model_path,
-		std::string classifier_map_path)
+	void RecognitionSystem::load_classifier(std::string classifier_model_path, std::string classifier_map_path)
 	{
 		try
 		{
 			recognition_system.classifier.reset();
-			recognition_system.classifier = std::make_unique<ArcFace>();
+			recognition_system.classifier = std::make_unique<ArcFace>(recognition_system.unknown_threshold);
 			recognition_system.classifier->construct_map(classifier_map_path);
+			std::cout << "loading model" << std::endl;
 			recognition_system.classifier->load(classifier_model_path);
+			std::cout << "done" << std::endl;
 		}
 		catch (const std::exception &e)
 		{
@@ -212,7 +231,8 @@ namespace tinyeye
 		cv::Rect2d *bbox_ptr;
 
 		std::list<cv::Rect2d> correct_boxes;
-
+		bool no_one_detected = true;
+		int iters = 0;
 		while (true)
 		{
 			{
@@ -237,13 +257,19 @@ namespace tinyeye
 				for (const auto &img_path : img_paths)
 					frames.push_back(cv::imread(img_path));
 
+				if (iters == 0)
+					no_one_detected = true;
+				iters++;
 				for (size_t i = 0; i < frames.size(); i++)
 				{
 					if (i == 0)
 					{
 						clock_t start = clock();
-						correct_boxes = detector->detect_rects(frames[i], 0.97);
+						correct_boxes = detector->detect_rects(frames[i], mtcnn_threshold);
 						std::cout << "[PROCESSING] detection_time: " << (double)(clock() - start) / CLOCKS_PER_SEC << std::endl;
+						
+						if (correct_boxes.size() > 0)
+							no_one_detected = false;
 
 						for (auto &tracker : trackers)
 						{
@@ -295,9 +321,18 @@ namespace tinyeye
 					to_delete.clear();
 				}
 
+				if (no_one_detected && iters == 1)
+				{
+					std::cout << "[DETECTION]: TWO SECOND PASSED AND NOONE IS DETECTED IN THE FRAME" << std::endl;
+					std::string base64_ref = utils::img2base64(frames[0]);
+					sio_server->send_log("unknown", base64_ref, "unknown");
+					logger::LOG_INFO(DETECTED_UNKNOWN, "unknown personal detected", base64_ref);
+					iters = 0;
+				}
+
 				frames.clear();
-				command = "rm -rf " + dir_name;
-				system(command.c_str());
+				// command = "rm -rf " + dir_name;
+				// system(command.c_str());
 			}
 		}
 	}
@@ -318,7 +353,9 @@ namespace tinyeye
 		cv::Mat frame;
 
 		std::string dir_name, command;
+		bool passing = false;
 		int count = 0;
+		std::queue<std::string> camera_queue;
 		while (true)
 		{
 			updated_classifier = sio_server->get_updated_model();
@@ -334,9 +371,13 @@ namespace tinyeye
 				{
 					// reload the classifier model
 					std::cout << "Continue processing ..." << std::endl;
-					load_classifier(in_features, out_features, classifier_model_path, classifier_map_path);
+					load_classifier(classifier_model_path, classifier_map_path);
 				}
 			}
+
+			sensor_state = bcm2835_gpio_lev(SENSOR); //HIGH or LOW?
+			if (sensor_state == ACTIVE_VALUE && !passing)
+				passing = true;
 
 			if (!cap.read(frame))
 			{
@@ -344,7 +385,7 @@ namespace tinyeye
 				continue;
 			}
 
-			// cv::rotate(frame, frame, cv::ROTATE_90_COUNTERCLOCKWISE);
+			cv::rotate(frame, frame, cv::ROTATE_90_COUNTERCLOCKWISE);
 
 			if (++count > frame_rate)
 				count = 1;
@@ -363,8 +404,24 @@ namespace tinyeye
 
 			if (count == frame_rate)
 			{
-				const std::lock_guard<std::mutex> lock(unprocessed_dirs_mutex);
-				unprocessed_dirs.push(dir_name);
+				camera_queue.push(dir_name);
+				while (camera_queue.size() > 2)
+				{
+					command = "rm -rf " + camera_queue.front();
+					system(command.c_str());
+					camera_queue.pop();
+				}
+
+				if (passing)
+				{
+					const std::lock_guard<std::mutex> lock(unprocessed_dirs_mutex);
+					while (camera_queue.size() > 0)
+					{
+						unprocessed_dirs.push(camera_queue.front());
+						camera_queue.pop();
+					}
+					passing = false;
+				}
 			}
 
 			cv::waitKey(1000 / frame_rate);
