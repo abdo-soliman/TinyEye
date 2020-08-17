@@ -21,9 +21,9 @@ namespace tinyeye
     {
     public:
         RecognitionSystem(const RecognitionSystem &) = delete;
-        static void intialize(std::string mtcnn_models_dir, std::string mfn_model_path,
-                              int in_features, int out_features, std::string classifier_model_path,
-                              std::string classifier_map_path, std::string camera_ip, std::string temp_dir_path, tinyeye::socket *sio);
+        static void intialize(std::string mtcnn_models_dir, float mtcnn_th, std::string mfn_model_path,
+                              std::string classifier_model_path, std::string classifier_map_path, float unknown_th,
+                              std::string camera_ip, std::string temp_dir_path, tinyeye::socket *sio);
         static void set_frame_rate(int fr);
         static void set_max_imgs_per_temp(int max_per_temp);
         static RecognitionSystem &get();
@@ -39,13 +39,15 @@ namespace tinyeye
         bool overlaping(const cv::Rect2d &b1, const cv::Rect2d &b2);
         void allocate_tracker(const cv::Mat &frame, const cv::Rect2d &box);
         void update_trackers(const cv::Mat &frame);
-        void load_classifier(int in_features, int out_features, std::string classifier_model_path,
-                             std::string classifier_map_path);
+        void load_classifier(std::string classifier_model_path, std::string classifier_map_path);
 
         std::unique_ptr<mtcnn::MTCNN> detector;
         std::unique_ptr<mobilefacenet::mfn> mfn_net;
         std::unique_ptr<ArcFace> classifier;
 
+        float mtcnn_threshold = 0.99;
+        float unknown_threshold = 12.0;
+    
         std::mutex unprocessed_dirs_mutex;
         std::mutex processing_dirs_mutex;
 
@@ -68,10 +70,10 @@ namespace tinyeye
         int camera_dir_name_length = 32;
         int max_imgs_per_temp = 10;
 
+        uint8_t sensor_state;
+
         bool updated_classifier;
         tinyeye::socket *sio_server;
-        int in_features;
-        int out_features;
         std::string classifier_model_path;
         std::string classifier_map_path;
 
