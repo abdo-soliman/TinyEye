@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Text, View, Dimensions, StyleSheet, Image } from "react-native";
+import { Text, View, Dimensions, StyleSheet } from "react-native";
 import { Camera } from "expo-camera";
 import { Surface, Caption, IconButton } from "react-native-paper";
 import { theme } from "../../core/theme";
@@ -23,7 +23,7 @@ export class AddPersonScreen extends Component {
   async componentDidMount() {
     let { status } = await Camera.requestPermissionsAsync();
     while (status !== "granted") {
-      let { status } = await Camera.requestPermissionsAsync();
+      status = await Camera.requestPermissionsAsync().status;
     }
     this.setState({ hasPermission: status === "granted" });
   }
@@ -34,12 +34,12 @@ export class AddPersonScreen extends Component {
       const image = await this.camera.takePictureAsync({
         quality: 0.5,
       });
+      this.setState({ number: number - 1 });
       this.setState((state) => {
         const images = [...state.images, image.uri];
 
         return {
           images,
-          number: number - 1,
         };
       });
     }

@@ -4,8 +4,8 @@ export default {
   },
   api: {
     url:
-      process.env.NODE_ENV === "production" ? "" : "http://192.168.1.9:3000/",
-    devUrl: "http://192.168.1.9:3000/",
+      process.env.NODE_ENV === "production" ? "" : "http://192.168.1.5:3000/",
+    devUrl: "http://192.168.1.5:3000/",
     testUrl: "",
     productionUrl: "",
   },
